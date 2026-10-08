@@ -79,7 +79,7 @@ class HistoryTable(QTableView):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self._model = HistoryModel(self)
-        self._follow = True  # start on the newest row
+        self._follow, self._moving = True, False  # start on the newest row
         self.setModel(self._model)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
@@ -89,20 +89,38 @@ class HistoryTable(QTableView):
         self.verticalHeader().setDefaultSectionSize(26)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.verticalScrollBar().rangeChanged.connect(self._on_range)
+        self.verticalScrollBar().valueChanged.connect(self._on_value)
 
     def set_local_time(self, local_time: bool) -> None:
         self._model.set_local_time(local_time)
 
+    # ---- following the newest row ------------------------------------------------------------
+    # The table sticks to the newest row until the user scrolls away from the bottom, and goes back to sticking when they
+    # return to it. Qt only knows the scroll range after a layout pass (which can come after the first rows are set, or
+    # after a resize), so the jump is also made whenever the range changes while following.
+    def _set_bar(self, value: int) -> None:
+        self._moving = True
+        try:
+            self.verticalScrollBar().setValue(value)
+        finally:
+            self._moving = False
+
+    def _on_range(self, _low: int, high: int) -> None:
+        if self._follow:
+            self._set_bar(high)
+
+    def _on_value(self, value: int) -> None:
+        if not self._moving:  # a move by the user (wheel, bar, keys), not ours
+            self._follow = value >= self.verticalScrollBar().maximum()
+
     def follow_newest(self) -> None:
-        """Jump to the newest row on the next update (used when another time frame is shown)."""
+        """Jump to the newest row and keep following (used when another time frame is shown)."""
         self._follow = True
+        self._set_bar(self.verticalScrollBar().maximum())
 
     def set_rows(self, rows: list[RowVM]) -> None:
-        bar = self.verticalScrollBar()
-        following = self._follow or bar.value() >= bar.maximum()  # stay on the newest row unless the user scrolled up
         self._model.set_rows(rows)
-        if following:
-            self.doItemsLayout()  # the scroll range is only updated by a layout pass: without it the jump falls short
-            self.scrollToBottom()
-            bar.setValue(bar.maximum())
-            self._follow = False
+        if self._follow:
+            self.doItemsLayout()  # update the scroll range now instead of after the next paint
+            self._set_bar(self.verticalScrollBar().maximum())

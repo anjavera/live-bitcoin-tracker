@@ -237,3 +237,27 @@ def test_strip_lays_out_24_hourly_cells_in_one_row_and_30_daily_cells_in_two(qap
     assert len(strip.cells) == 24 and strip.cell_rect(23).top() == strip.cell_rect(0).top()
     strip.set_rows(rows()[:31], 30)
     assert len(strip.cells) == 30 and strip.cell_rect(15).top() > strip.cell_rect(0).top() and strip.cell_rect(14).top() == strip.cell_rect(0).top()
+
+
+def test_table_follows_the_newest_row_when_it_is_only_laid_out_after_the_rows_arrive(qapp):
+    table = HistoryTable()
+    table.set_rows(rows())  # rows arrive while the widget has no size and no scroll range yet
+    table.resize(600, 300)
+    table.show()
+    qapp.processEvents()
+    bar = table.verticalScrollBar()
+    assert bar.maximum() > 0 and bar.value() == bar.maximum()
+
+
+def test_scrolling_back_to_the_bottom_resumes_following(qapp):
+    table = HistoryTable()
+    table.resize(600, 300)
+    table.show()
+    table.set_rows(rows())
+    bar = table.verticalScrollBar()
+    bar.setValue(10)
+    table.set_rows(rows(84101.0))
+    assert bar.value() == 10
+    bar.setValue(bar.maximum())
+    table.set_rows(rows(84102.0))
+    assert bar.value() == bar.maximum()
