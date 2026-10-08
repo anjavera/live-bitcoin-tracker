@@ -53,3 +53,39 @@ def test_other_systems_are_never_checked():
 
     assert display_problem("win32", {"DISPLAY": ":0"}, find_library=lambda n: None, load=_no_lib) is None
     assert display_problem("darwin", {"DISPLAY": ":0"}, find_library=lambda n: None, load=_no_lib) is None
+
+
+# ---- app icon and desktop identity --------------------------------------------------------------------
+def test_the_icon_is_bundled_valid_and_matches_the_installer_copy(qapp):
+    from pathlib import Path
+
+    from PySide6.QtGui import QImage
+
+    from live_bitcoin_tracker.gui import main
+
+    bundled = Path(main.__file__).parent / "assets" / "icon.png"
+    installer = Path(main.__file__).parents[3] / "packaging" / "linux" / "icon.png"
+    image = QImage(str(bundled))
+    assert not image.isNull() and image.width() >= 256 and image.width() == image.height()
+    assert bundled.read_bytes() == installer.read_bytes()  # one picture everywhere
+
+
+def test_the_app_names_itself_and_sets_the_icon_so_desktops_do_not_show_a_gear(qapp):
+    from PySide6.QtGui import QGuiApplication
+
+    from live_bitcoin_tracker.gui import main
+
+    main.apply_app_identity(qapp)
+    assert qapp.applicationName() == "Live Bitcoin Tracker"
+    assert QGuiApplication.desktopFileName() == main.DESKTOP_FILE == "live-bitcoin-tracker"
+    assert not qapp.windowIcon().isNull()
+
+
+def test_the_linux_desktop_entry_matches_the_app_and_the_installer():
+    from pathlib import Path
+
+    root = Path(__file__).parents[2] / "packaging" / "linux"
+    entry = (root / "live-bitcoin-tracker.desktop").read_text()
+    assert "Icon=live-bitcoin-tracker" in entry and "StartupWMClass=live-bitcoin-tracker" in entry
+    installer = (root / "install-gui.sh").read_text()
+    assert "live-bitcoin-tracker.png" in installer and "live-bitcoin-tracker.desktop" in installer

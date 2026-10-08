@@ -9,11 +9,13 @@ if [ ! -f "$BIN" ]; then
   echo "Usage: sh install-gui.sh path/to/bitcoin-tracker-linux-x86_64"
   exit 1
 fi
-mkdir -p "$HOME/.local/bin" "$HOME/.local/share/applications" "$HOME/.local/share/icons"
+ICONS="$HOME/.local/share/icons/hicolor/256x256/apps"
+mkdir -p "$HOME/.local/bin" "$HOME/.local/share/applications" "$ICONS"
 cp "$BIN" "$HOME/.local/bin/bitcoin-tracker"
 chmod +x "$HOME/.local/bin/bitcoin-tracker"
-[ -f "$HERE/icon.png" ] && cp "$HERE/icon.png" "$HOME/.local/share/icons/bitcoin-tracker-tui.png"
-sed "s|^Exec=.*|Exec=$HOME/.local/bin/bitcoin-tracker|" "$HERE/bitcoin-tracker.desktop" > "$HOME/.local/share/applications/bitcoin-tracker.desktop"
+[ -f "$HERE/icon.png" ] && cp "$HERE/icon.png" "$ICONS/live-bitcoin-tracker.png"
+sed "s|^Exec=.*|Exec=$HOME/.local/bin/bitcoin-tracker|" "$HERE/live-bitcoin-tracker.desktop" > "$HOME/.local/share/applications/live-bitcoin-tracker.desktop"
+command -v gtk-update-icon-cache >/dev/null 2>&1 && gtk-update-icon-cache -q -t "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
 echo "Installed. Find 'Live Bitcoin Tracker' in your app menu, or run: $HOME/.local/bin/bitcoin-tracker"
 echo "(If the window does not open on an X11 desktop, install one system library: sudo apt install libxcb-cursor0)"
 echo "(If the command is not found, add \$HOME/.local/bin to your PATH.)"

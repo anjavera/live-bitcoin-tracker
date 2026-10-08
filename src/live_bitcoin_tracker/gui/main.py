@@ -84,6 +84,22 @@ def _snapshot(app, window, controller, clock, path: str) -> int:
 
 
 SETTINGS_ORG = SETTINGS_APP = "LiveBitcoinTracker"
+APP_NAME = "Live Bitcoin Tracker"
+DESKTOP_FILE = "live-bitcoin-tracker"  # the .desktop file's name: how Linux desktops match a window to its menu entry and icon
+
+
+def apply_app_identity(app) -> None:
+    """Name and icon for the window, the task bar and the dock (otherwise desktops show a generic gear)."""
+    from pathlib import Path
+
+    from PySide6.QtGui import QGuiApplication, QIcon
+
+    app.setApplicationName(APP_NAME)
+    app.setApplicationDisplayName(APP_NAME)
+    QGuiApplication.setDesktopFileName(DESKTOP_FILE)
+    icon = Path(__file__).parent / "assets" / "icon.png"
+    if icon.is_file():
+        app.setWindowIcon(QIcon(str(icon)))
 
 
 def _saved_timeframe() -> str:
@@ -114,6 +130,7 @@ def run(args: argparse.Namespace) -> int:
     from live_bitcoin_tracker.gui.window import MainWindow
 
     app = QApplication.instance() or QApplication(sys.argv[:1])
+    apply_app_identity(app)
     theme.load_bundled_fonts()
     headline, body = theme.pick_fonts(QFontDatabase.families())
     app.setStyleSheet(theme.stylesheet(headline, body))

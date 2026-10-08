@@ -73,7 +73,7 @@ jobs:
         if: runner.os == 'Linux'
         run: >
           uv run --with pyinstaller pyinstaller --onefile --windowed --name bitcoin-tracker
-          --collect-submodules live_bitcoin_tracker --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
+          --collect-submodules live_bitcoin_tracker --collect-data live_bitcoin_tracker --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
           --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
           packaging/tracker_gui_app.py
       - name: Build the desktop app (Windows)
@@ -81,7 +81,7 @@ jobs:
         shell: bash
         run: >
           uv run --with pyinstaller pyinstaller --onefile --windowed --name bitcoin-tracker --icon packaging/icon.ico
-          --collect-submodules live_bitcoin_tracker --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
+          --collect-submodules live_bitcoin_tracker --collect-data live_bitcoin_tracker --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
           --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
           packaging/tracker_gui_app.py
       - name: Build the desktop app (macOS, an .app bundle)
@@ -89,7 +89,7 @@ jobs:
         run: >
           uv run --with pyinstaller pyinstaller --windowed --name bitcoin-tracker --icon packaging/icon.icns
           --osx-bundle-identifier io.github.anjavera.livebitcointracker
-          --collect-submodules live_bitcoin_tracker --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
+          --collect-submodules live_bitcoin_tracker --collect-data live_bitcoin_tracker --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
           --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
           packaging/tracker_gui_app.py
       - name: Smoke test (no network, prints the version then draws one frame off-screen)
@@ -127,7 +127,7 @@ jobs:
           path: assets
           merge-multiple: true
       - name: Add the Linux installer
-        run: cp packaging/linux/install.sh packaging/linux/install-gui.sh packaging/linux/icon.png packaging/linux/bitcoin-tracker.desktop assets/
+        run: cp packaging/linux/install.sh packaging/linux/install-gui.sh packaging/linux/icon.png packaging/linux/live-bitcoin-tracker.desktop assets/
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}
