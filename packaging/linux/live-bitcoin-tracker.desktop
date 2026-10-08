@@ -6,4 +6,4 @@ Exec=bitcoin-tracker
 Icon=live-bitcoin-tracker
 StartupWMClass=live-bitcoin-tracker
 Terminal=false
-Categories=Utility;Finance;
+Categories=Office;Finance;
