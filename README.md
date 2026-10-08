@@ -1,3 +1,5 @@
+<p align="center"><img src="packaging/linux/icon.png" width="128" alt="Live Bitcoin Tracker icon"></p>
+
 # Live Bitcoin Tracker
 
 A live tracker for Polymarket US's **"Bitcoin Up or Down"** markets, in three time frames in one window:

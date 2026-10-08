@@ -34,3 +34,5 @@ labels, colour-band scale, chart candle size); the rest of the code asks a `Time
 with daylight saving; the open/close come from each event's `assetPriceTerms` (`windowStart`, `windowEnd`, `priceToBeat`, `settlementPrice`).
 Outcomes use the average of 60 BRTI prices before each boundary (see `docs/DESIGN.md`), not a single tick.
 GUI tests: `QT_QPA_PLATFORM=offscreen uv run pytest`.
+
+GitHub page picture: `docs/social-preview.png` (made by `packaging/make_social_preview.py`); GitHub only takes it by hand: repo Settings > General > Social preview.
