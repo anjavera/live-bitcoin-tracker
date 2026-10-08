@@ -1,0 +1,137 @@
+name: Release
+
+# Builds the standalone apps (no Python needed) and attaches them to a GitHub Release.
+# Run by pushing a version tag, e.g.:  git tag v0.1.0 && git push origin v0.1.0
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build (${{ matrix.asset }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: btc15-widget-linux-x86_64
+            exe: btc15-widget
+          - os: macos-latest
+            asset: btc15-widget-macos-arm64
+            exe: btc15-widget
+          - os: windows-latest
+            asset: btc15-widget-windows-x86_64.exe
+            exe: btc15-widget.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - name: Build the standalone app
+        run: >
+          uv run --with pyinstaller pyinstaller --onefile --name btc15-widget
+          --collect-all textual --collect-submodules btc15_widget
+          --copy-metadata polymarket-us --copy-metadata btc15-widget
+          --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
+          packaging/btc15_app.py
+      - name: Smoke test (no network)
+        shell: bash
+        run: ./dist/${{ matrix.exe }} --version
+      - name: Name the file for the release page
+        shell: bash
+        run: mv "dist/${{ matrix.exe }}" "dist/${{ matrix.asset }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+
+  build-gui:
+    name: build GUI (${{ matrix.asset }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: btc15-gui-linux-x86_64
+          - os: macos-latest
+            asset: btc15-gui-macos-arm64.zip
+          - os: windows-latest
+            asset: btc15-gui-windows-x86_64.exe
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --extra gui
+      - name: Build the desktop app (Linux)
+        if: runner.os == 'Linux'
+        run: >
+          uv run --with pyinstaller pyinstaller --onefile --windowed --name btc15-gui
+          --collect-submodules btc15_widget --copy-metadata polymarket-us --copy-metadata btc15-widget
+          --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
+          packaging/btc15_gui_app.py
+      - name: Build the desktop app (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: >
+          uv run --with pyinstaller pyinstaller --onefile --windowed --name btc15-gui --icon packaging/icon.ico
+          --collect-submodules btc15_widget --copy-metadata polymarket-us --copy-metadata btc15-widget
+          --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
+          packaging/btc15_gui_app.py
+      - name: Build the desktop app (macOS, an .app bundle)
+        if: runner.os == 'macOS'
+        run: >
+          uv run --with pyinstaller pyinstaller --windowed --name btc15-gui --icon packaging/icon.icns
+          --osx-bundle-identifier io.github.anjavera.btc15gui
+          --collect-submodules btc15_widget --copy-metadata polymarket-us --copy-metadata btc15-widget
+          --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
+          packaging/btc15_gui_app.py
+      - name: Smoke test (no network, prints the version then draws one frame off-screen)
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            Windows) BIN=dist/btc15-gui.exe ;;
+            macOS)   BIN=dist/btc15-gui.app/Contents/MacOS/btc15-gui ;;
+            *)       BIN=dist/btc15-gui ;;
+          esac
+          "$BIN" --version
+          "$BIN" --snapshot smoke.png --keyless
+          test -s smoke.png
+      - name: Name the file for the release page
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            Windows) mv dist/btc15-gui.exe "dist/${{ matrix.asset }}" ;;
+            macOS)   ditto -c -k --keepParent dist/btc15-gui.app "dist/${{ matrix.asset }}" ;;
+            *)       mv dist/btc15-gui "dist/${{ matrix.asset }}" ;;
+          esac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+
+  publish:
+    needs: [build, build-gui]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - name: Add the Linux installer
+        run: cp packaging/linux/install.sh packaging/linux/install-gui.sh packaging/linux/icon.png packaging/linux/btc15-gui.desktop assets/
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" assets/*
+          --title "BTC 15m widget $GITHUB_REF_NAME"
+          --notes "Unofficial live tracker for Polymarket US BTC Up or Down 15-minute markets. Download the file for your system and run it; no Python needed. These builds are not code-signed, so Windows and macOS will warn the first time: see the README for the steps."

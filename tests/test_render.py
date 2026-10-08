@@ -1,0 +1,281 @@
+from datetime import datetime, timedelta, timezone
+
+import io
+import pytest
+from rich.color import Color
+from rich.console import Console
+
+from btc15_widget.colors import net_color, result_color
+from btc15_widget.model import Window
+from btc15_widget.render import CELLS_PER_ROW, render_legend, render_strip
+
+UTC = timezone.utc
+T0 = datetime(2026, 9, 29, 13, 0, tzinfo=UTC)  # 09:00 ET
+PREFIX = len("09-29 09:00 ")
+
+
+def windows(n=96, **kw):
+    return [Window(T0 + timedelta(minutes=15 * i), open=100.0, close=110.0, **kw) for i in range(n)]
+
+
+def style_at(text, row, col):
+    offset = sum(len(line) + 1 for line in text.plain.split("\n")[:row]) + PREFIX + col
+    return text.get_style_at_offset(Console(), offset), text.plain[offset]
+
+
+def hex_of(color: Color) -> str:
+    return color.get_truecolor().hex
+
+
+def test_strip_layout():
+    text = render_strip(windows(), "dark")
+    lines = text.plain.split("\n")
+    assert CELLS_PER_ROW == 24
+    assert len(lines) == 4 and all(len(line) == PREFIX + 24 for line in lines)
+
+
+def test_first_prefix_is_eastern_time():
+    assert render_strip(windows(), "dark").plain.startswith("09-29 09:00 ")
+
+
+@pytest.mark.parametrize("theme", ["dark"])
+def test_settled_cell_uses_result_fg_and_net_bg(theme):
+    ws = windows()
+    ws[0] = Window(T0, open=100.0, close=150.0)       # UP, net +50
+    ws[1] = Window(T0 + timedelta(minutes=15), open=400.0, close=100.0)  # DOWN, net -300
+    text = render_strip(ws, theme)
+    up, glyph = style_at(text, 0, 0)
+    assert glyph == "▌"
+    assert hex_of(up.color) == result_color("UP", theme) and hex_of(up.bgcolor) == net_color(50, theme)
+    down, _ = style_at(text, 0, 1)
+    assert hex_of(down.color) == result_color("DOWN", theme) and hex_of(down.bgcolor) == net_color(-300, theme)
+
+
+def test_pending_and_gap_cells_are_dim_and_uncoloured():
+    ws = windows()
+    ws[0] = Window(T0, open=None, close=None)
+    ws[1] = Window(T0 + timedelta(minutes=15), open=None, close=None, error="boom")
+    text = render_strip(ws, "dark")
+    pending, g0 = style_at(text, 0, 0)
+    gap, g1 = style_at(text, 0, 1)
+    assert (g0, g1) == ("?", "·")
+    assert pending.dim and gap.dim
+    assert pending.bgcolor is None and gap.bgcolor is None
+
+
+def test_legend_lists_all_bands():
+    plain = render_legend("dark").plain
+    for edge in ("10", "25", "50", "100", "200", "300", "400", "500", "1000"):
+        assert edge in plain
+    assert "UP" in plain and "DOWN" in plain
+
+
+# ---- header and status -------------------------------------------------------------------------
+from btc15_widget.calibration import Calibration
+from btc15_widget.model import LiveTick
+from btc15_widget.render import render_header, render_status
+from btc15_widget.state import WidgetState
+from btc15_widget.windows import MARKET_SLUG, floor_window
+
+NOW = datetime(2026, 9, 30, 9, 20, tzinfo=UTC)  # live window starts 09:15Z
+LIVE = floor_window(NOW)
+
+
+def full_state(open_=83874.16, quote=83874.95, quote_age=0, tick_age=0, calibrated=True):
+    s = WidgetState()
+    s.set_history([Window(LIVE, open=open_, close=None, status="OPEN")], NOW)
+    if quote is not None:
+        s.apply_quotes({"a": quote}, NOW - timedelta(seconds=quote_age))
+    s.apply_tick(LiveTick(MARKET_SLUG.format(LIVE), 0.62, 0.61, 0.62, 0.62, 10.0), NOW - timedelta(seconds=tick_age))
+    if calibrated:
+        s.calibration = Calibration(n=3, bias=-4.0, mean_abs_error=4.5, max_abs_error=9.0)  # n<8: bias not applied
+    s.feed_status = "live"
+    return s
+
+
+def header(state, now=NOW, theme="dark"):
+    return render_header(state, now, theme).plain
+
+
+def test_header_full():
+    out = header(full_state())
+    for piece in ("≈ $83,874.95", "(±$4.5)", "beat $83,874.16", "gap +$0.79 (UP)", "ends in 10:00",
+                  "Up 0.62  Down 0.38", "spread 0.01", "provisional"):
+        assert piece in out, piece
+
+
+def test_header_down_gap_sign():
+    assert "gap -$12.16 (DOWN)" in header(full_state(quote=83862.00))
+
+
+def test_provisional_block_uses_gap_colours():
+    text = render_header(full_state(quote=83862.00), NOW, "dark")
+    offset = text.plain.index("▌")
+    style = text.get_style_at_offset(Console(), offset)
+    assert hex_of(style.color) == result_color("DOWN", "dark") and hex_of(style.bgcolor) == net_color(-12.16, "dark")
+
+
+def test_header_no_open_shows_dash():
+    out = header(full_state(open_=None))
+    assert "beat —" in out and "gap —" in out and "None" not in out
+
+
+def test_header_no_proxy_shows_dash():
+    out = header(full_state(quote=None))
+    assert "≈ —" in out and "gap —" in out and "None" not in out
+
+
+def test_stale_data_is_labelled_not_shown():
+    out = header(full_state(quote_age=15, tick_age=30))
+    assert "≈ stale" in out and "83,874.95" not in out
+    assert "Up stale" in out and "0.62" not in out
+
+
+def test_countdown_format():
+    s = full_state()
+    assert "ends in 10:00" in header(s, NOW)
+    assert "ends in 00:01" in header(s, datetime(2026, 9, 30, 9, 29, 59, tzinfo=UTC))
+    assert "ends in 15:00" in header(s, datetime(2026, 9, 30, 9, 30, tzinfo=UTC))  # the next window has begun
+
+
+def test_status_shows_feed_error_and_signals_off():
+    s = full_state(quote_age=2)
+    s.error = "Missing credentials"
+    out = render_status(s, NOW, "dark").plain
+    assert "feed: live" in out and "quotes 2s ago" in out
+    assert "Signals: off" in out and "Error: Missing credentials" in out
+
+
+def test_status_explains_the_first_load_wait():
+    s = WidgetState()
+    s.loading = True
+    out = render_status(s, NOW, "dark").plain
+    assert "loading" in out and "first run" in out
+    s.set_history([Window(LIVE, open=1.0, close=None)], NOW)
+    assert "loading" not in render_status(s, NOW, "dark").plain  # once history exists the note is gone
+
+
+def test_text_blocks_fit_the_minimum_terminal_width():
+    from btc15_widget.app import MIN_WIDTH
+
+    s = full_state()
+    s.apply_quotes({"a": 100123.45}, NOW)  # widest realistic price
+    s.set_history([Window(LIVE, open=99000.12, close=None, status="OPEN")], NOW)
+    s.feed_status = "reconnecting"
+    blocks = [render_header(s, NOW, "dark"), render_legend("dark"), render_status(s, NOW, "dark")]
+    for block in blocks:
+        for line in block.plain.split("\n"):
+            assert len(line) <= MIN_WIDTH, (len(line), line)
+
+
+# ---- table (shared by `pm btc15` and the live widget) ------------------------------------------
+from btc15_widget.render import build_table, split_table
+
+
+def table_cells(table, name):
+    return list(next(c for c in table.columns if c.header == name)._cells)
+
+
+def live_window():
+    return Window(T0, open=100.0, close=None, status="OPEN")
+
+
+def test_live_row_shows_provisional_price_and_lean_up():
+    table = build_table([live_window()], "dark", volume=False, live_start=T0, live_price=105.0)
+    close = table_cells(table, "Close")[0]
+    assert "≈" in close.plain and "105.00" in close.plain
+    assert hex_of(table_cells(table, "Chg $")[0].style.bgcolor) == net_color(5.0, "dark")
+    result = table_cells(table, "Result")[0]
+    assert result.plain.strip() == "UP?"
+    assert hex_of(result.style.color) == result_color("UP", "dark") and result.style.bgcolor is None  # no fill until settled
+
+
+def test_live_row_lean_down():
+    table = build_table([live_window()], "dark", volume=False, live_start=T0, live_price=90.0)
+    assert table_cells(table, "Result")[0].plain.strip() == "DOWN?"
+    assert hex_of(table_cells(table, "Chg %")[0].style.bgcolor) == net_color(-10.0, "dark")
+
+
+def test_live_row_without_a_price_is_plain_live():
+    table = build_table([live_window()], "dark", volume=False, live_start=T0, live_price=None)
+    assert table_cells(table, "Result")[0].plain.strip() == "LIVE"
+    assert table_cells(table, "Chg $")[0].style.bgcolor is None
+    assert "≈" not in table_cells(table, "Close")[0].plain
+
+
+def test_non_live_unsettled_window_is_not_given_the_live_price():
+    other = Window(T0 + timedelta(minutes=15), open=100.0, close=None, status="RESOLVING")
+    table = build_table([other], "dark", volume=False, live_start=T0, live_price=105.0)
+    assert table_cells(table, "Result")[0].plain.strip() == "-"
+    assert table_cells(table, "Chg $")[0].style.bgcolor is None
+
+
+def test_table_without_volume_fits_80_columns():
+    ws = [Window(T0 + timedelta(minutes=15 * i), open=99000.12, close=100123.45) for i in range(5)]
+    ws.append(Window(T0 + timedelta(minutes=75), open=99000.12, close=None, status="OPEN"))
+    table = build_table(ws, "dark", volume=False, live_start=ws[-1].start, live_price=100123.45)
+    console = Console(width=200, record=True, file=io.StringIO())
+    console.print(table)
+    assert max(len(line) for line in console.export_text().split("\n")) <= 80
+
+
+def test_split_table_separates_a_pinnable_header_from_the_rows():
+    ws = [Window(T0 + timedelta(minutes=15 * i), open=100.0, close=110.0) for i in range(5)]
+    head, body = split_table(build_table(ws, "dark", volume=False))
+    assert len(head.plain.split("\n")) == 3  # top border, column names, separator
+    assert "Window (ET)" in head.plain and "Chg $" in head.plain and "Result" in head.plain
+    assert "Window (ET)" not in body.plain
+    assert len([line for line in body.plain.split("\n") if "+10.00" in line]) == 5
+    offset = body.plain.index("+10.00")
+    assert hex_of(body.get_style_at_offset(Console(), offset).bgcolor) == net_color(10.0, "dark")  # fills survive
+    widths = {len(line) for line in (head.plain + "\n" + body.plain).split("\n")}
+    assert len(widths) == 1  # header and rows line up column for column
+
+
+def test_legend_minus_marks_the_net_down_row():
+    lines = render_legend("dark", "table").plain.split("\n")
+    up = next(l for l in lines if l.startswith("net up"))
+    down = next(l for l in lines if l.startswith("net down"))
+    assert "1000+" in up and "1000-" not in up
+    assert "1000-" in down and "1000+" not in down
+
+
+def test_a_window_with_no_market_says_none_not_gap():
+    from btc15_widget.history import NO_MARKET
+
+    none_window = Window(T0, open=None, close=None, error=NO_MARKET)
+    failed = Window(T0 + timedelta(minutes=15), open=None, close=None, error="timeout")
+    table = build_table([none_window, failed], "dark", volume=False)
+    results = [c.plain.strip() for c in table_cells(table, "Result")]
+    assert results == ["none", "gap"]
+
+
+def test_table_legend_explains_none_and_gap_within_80_columns():
+    lines = render_legend("dark", "table").plain.split("\n")
+    assert all(len(line) <= 80 for line in lines)
+    note = lines[-1]
+    assert "none" in note and "gap" in note and "no market" in note
+
+
+def test_header_shows_the_official_index_without_the_estimate_marker():
+    s = full_state()
+    s.apply_index(83880.00, NOW)
+    out = header(s)
+    assert "BTC $83,880.00 (Polymarket index)" in out and "≈" not in out and "±" not in out
+    assert "gap +$5.84 (UP)" in out
+
+
+def test_header_falls_back_to_the_proxy_when_the_index_is_stale():
+    s = full_state()
+    s.apply_index(83880.00, NOW - timedelta(seconds=30))
+    out = header(s)
+    assert "≈ $83,874.95" in out and "83,880" not in out
+
+
+def test_status_names_the_price_source_and_market_state():
+    s = full_state()
+    s.apply_index(83880.00, NOW)
+    assert "price: index 0s ago" in render_status(s, NOW, "dark").plain
+    assert "price: index" not in render_status(full_state(), NOW, "dark").plain
+    s.apply_tick(LiveTick(MARKET_SLUG.format(LIVE), 0.5, 0.49, 0.51, 0.5, 10.0, state="MARKET_STATE_HALTED"), NOW)
+    assert "market halted" in render_status(s, NOW, "dark").plain

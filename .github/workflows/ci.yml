@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:            # every branch, so work is checked on all three systems before it reaches main
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install system dependencies for GUI tests
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgl1 libegl1 libxkbcommon0 libdbus-1-3 libfontconfig1 libglib2.0-0
+      - run: uv sync --extra gui
+      - run: uv run pytest -q
+        env:
+          QT_QPA_PLATFORM: offscreen
+      - run: uv run btc15-widget --version
+      - run: uv run btc15-gui --version

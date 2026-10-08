@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=BTC 15m Tracker
+Comment=Live Polymarket US BTC Up or Down 15-minute tracker (desktop window)
+Exec=btc15-gui
+Icon=btc15-widget
+Terminal=false
+Categories=Utility;Finance;
