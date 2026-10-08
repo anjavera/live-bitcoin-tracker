@@ -20,8 +20,8 @@ history table (result green/red, change in dollars blue/orange). Switch tabs wit
 > **Unofficial.** Not affiliated with, endorsed by, or connected to Polymarket or CF Benchmarks.
 > Read-only market data. Nothing here places orders, and nothing here is financial advice.
 
-**Status:** works today on Linux (tested); Windows and macOS builds are produced by automated checks and have not
-been tried by hand yet. Design notes: [`docs/DESIGN.md`](docs/DESIGN.md).
+**Status:** works on Linux, and the Windows build was built, tested (423 tests) and run with live data on a Windows Server 2022
+machine (2026-10-08); it has not yet been tried on a desktop Windows 10/11 or on a Mac by hand. Design notes: [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## Install (no Python needed)
 

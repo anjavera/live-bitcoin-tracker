@@ -33,6 +33,6 @@ the project uses [semantic versioning](https://semver.org/).
 - The daily market slug carries the UTC start (21:00 in summer, 22:00 in winter). The app also tries the neighbouring hour,
   but this has not been observed live across a daylight-saving change yet (next one: 2026-11-01).
 - The terminal widget and `pm btc15` cover the 15-minute market only.
-- Windows and macOS builds are produced by automated checks and have not been tried by hand yet.
+- The Windows build was tested on Windows Server 2022 (build, 423 tests, live screenshots of all three tabs); it has not been tried on a desktop Windows 10/11, and the macOS build has not been tried by hand.
 - The apps are not code-signed, so Windows and macOS show a one-time warning.
 - Read-only: nothing in this project places, changes or cancels orders.
