@@ -277,3 +277,45 @@ def test_an_odd_book_response_still_backs_off_like_a_failure():
 
     asyncio.run(scenario())
     assert ticks == [] and sleeps[:2] == [5, 10]  # growing backoff, bbo is not used to paper over a bad book
+
+
+# ---- hourly and daily frames --------------------------------------------------------------------------
+from live_bitcoin_tracker.feed import LiveFeed  # noqa: E402
+from live_bitcoin_tracker.timeframes import DAILY, HOURLY  # noqa: E402
+
+
+def make_frame_feed(tf, fetch, ticks, clock):
+    async def sleep(delay, stop):
+        await asyncio.sleep(0)
+
+    return PollingFeed(ticks.append, fetch, interval=2.0, clock=clock, sleep=sleep, timeframe=tf)
+
+
+def test_hourly_feed_polls_the_live_hour_market():
+    asked, ticks = [], []
+    t = datetime(2026, 10, 8, 5, 20, tzinfo=UTC)
+    run_until(make_frame_feed(HOURLY, lambda slug: asked.append(slug) or book_response(slug), ticks, lambda: t), ticks, 2)
+    assert set(asked) == {"cpc-btc-updown-1h-2026-10-08-0500z"}
+
+
+def test_daily_feed_tries_the_neighbouring_slug_when_the_first_is_unknown():
+    asked, ticks = [], []
+    t = datetime(2026, 11, 2, 12, 0, tzinfo=UTC)  # after the clocks change: the daily window starts 2026-11-01 22:00Z
+    good = DAILY.market_slugs(DAILY.floor(t))[1]  # pretend Polymarket named it an hour earlier
+
+    def fetch(slug):
+        asked.append(slug)
+        if slug != good:
+            raise _not_found()
+        return book_response(slug)
+
+    run_until(make_frame_feed(DAILY, fetch, ticks, lambda: t), ticks, 1)
+    assert asked[:2] == DAILY.market_slugs(DAILY.floor(t))[:2] and ticks[0].slug == good
+
+
+def test_keyed_feed_follows_six_quarter_hours_or_two_windows_of_a_longer_frame():
+    t = datetime(2026, 10, 8, 5, 20, tzinfo=UTC)
+    assert len(LiveFeed(lambda _: None).slugs(t)) == 6
+    assert LiveFeed(lambda _: None, timeframe=HOURLY).slugs(t) == [
+        "cpc-btc-updown-1h-2026-10-08-0500z", "cpc-btc-updown-1h-2026-10-08-0600z"]
+    assert len(LiveFeed(lambda _: None, timeframe=DAILY).slugs(t)) == 6  # two days, three name candidates each

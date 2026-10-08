@@ -13,7 +13,8 @@ from polymarket_us.websocket import MarketsWebSocket
 
 from live_bitcoin_tracker.client import load_credentials
 from live_bitcoin_tracker.model import LiveTick
-from live_bitcoin_tracker.windows import MARKET_SLUG, event_slug, floor_window, window_slugs
+from live_bitcoin_tracker.timeframes import FIFTEEN_MIN, Timeframe
+from live_bitcoin_tracker.windows import window_slugs
 
 POLL_EVERY = 2.0  # seconds between price polls
 MAX_BACKOFF = 60
@@ -115,9 +116,10 @@ class PollingFeed:
 
     def __init__(self, on_tick: Callable[[LiveTick], None], fetch_book: Callable[[str], dict], interval: float = POLL_EVERY,
                  clock: Callable[[], datetime] = lambda: datetime.now(timezone.utc), sleep=wait_or_stop,
-                 fetch_bbo: Callable[[str], dict] | None = None, fetch_event: Callable[[str], dict] | None = None) -> None:
+                 fetch_bbo: Callable[[str], dict] | None = None, fetch_event: Callable[[str], dict] | None = None,
+                 timeframe: Timeframe = FIFTEEN_MIN) -> None:
         self.on_tick, self._fetch, self._interval, self._clock, self._sleep = on_tick, fetch_book, interval, clock, sleep
-        self._fetch_bbo, self._fetch_event = fetch_bbo, fetch_event
+        self._fetch_bbo, self._fetch_event, self.timeframe = fetch_bbo, fetch_event, timeframe
 
     async def _tick(self, slug: str) -> LiveTick:
         """The best quote available: the full book, else bbo, else the event's quote.
@@ -138,12 +140,22 @@ class PollingFeed:
                 missing = missing or e
         raise missing
 
+    async def _tick_any(self, slugs: list[str]) -> LiveTick:
+        """The first slug that has a quote. Only the daily frame has more than one, to survive a daylight-saving naming shift."""
+        missing = None
+        for slug in slugs:
+            try:
+                return await self._tick(slug)
+            except (NotFoundError, NoQuote) as e:
+                missing = missing or e
+        raise missing
+
     async def run(self, stop: asyncio.Event) -> None:
         failures = 0
         while not stop.is_set():
-            slug = MARKET_SLUG.format(floor_window(self._clock()))  # re-read each time: follows the rollover
+            start = self.timeframe.floor(self._clock())  # re-read each time: follows the rollover
             try:
-                tick = await self._tick(slug)
+                tick = await self._tick_any(self.timeframe.market_slugs(start))
             except (NotFoundError, NoQuote):  # no market published for this window: check again gently, this is not an outage
                 delay = NO_MARKET_RETRY
             except Exception:  # network error, rate limit or odd response: back off and keep going
@@ -157,8 +169,19 @@ class PollingFeed:
 
 class LiveFeed:
     def __init__(self, on_tick: Callable[[LiveTick], None], ws_factory=MarketsWebSocket,
-                 creds: tuple[str, str] | None = None, sleep=wait_or_stop) -> None:
+                 creds: tuple[str, str] | None = None, sleep=wait_or_stop, timeframe: Timeframe = FIFTEEN_MIN) -> None:
         self.on_tick, self._factory, self._creds, self._sleep = on_tick, ws_factory, creds, sleep
+        self.timeframe = timeframe
+
+    def slugs(self, now: datetime) -> list[str]:
+        """Markets to follow: six 15-minute windows (the session is an hour), or the live and next window of a longer frame."""
+        if self.timeframe is FIFTEEN_MIN:
+            return window_slugs(now, WINDOWS_TO_FOLLOW)
+        start, slugs = self.timeframe.floor(now), []
+        for _ in range(2):
+            slugs += self.timeframe.market_slugs(start)
+            start = self.timeframe.next(start)
+        return slugs
 
     async def run(self, stop: asyncio.Event) -> None:
         creds = self._creds or load_credentials()
@@ -177,7 +200,7 @@ class LiveFeed:
             ws.on("error", lambda _e: dropped.set())  # the SDK ends its read loop on errors
             try:
                 await ws.connect()
-                await ws.subscribe_market_data_lite("lite", window_slugs(datetime.now(timezone.utc), WINDOWS_TO_FOLLOW))
+                await ws.subscribe_market_data_lite("lite", self.slugs(datetime.now(timezone.utc)))
                 waiters = {asyncio.ensure_future(dropped.wait()), asyncio.ensure_future(stop.wait())}
                 _, pending = await asyncio.wait(waiters, timeout=SESSION_SECONDS, return_when=asyncio.FIRST_COMPLETED)
                 for task in pending:

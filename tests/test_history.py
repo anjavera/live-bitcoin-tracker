@@ -223,3 +223,69 @@ def test_not_found_is_not_retried_and_is_labelled_no_market():
 
     w = fetch_window(Client404(), datetime(2026, 9, 29, 9, 0, tzinfo=UTC), sleep=sleeps.append)
     assert w.error == NO_MARKET and sleeps == []
+
+
+# ---- hourly and daily frames --------------------------------------------------------------------------
+from live_bitcoin_tracker.history import fetch_windows_bulk, history_cache  # noqa: E402
+from live_bitcoin_tracker.timeframes import DAILY, FIFTEEN_MIN, HOURLY  # noqa: E402
+
+NOW_H = datetime(2026, 10, 8, 5, 20, tzinfo=UTC)
+
+
+def frame_responses(tf, now, settled=True):
+    responses = {tf.event_slug(s): event(100.0 + i, 101.0 + i) for i, s in enumerate(tf.past_starts(now))}
+    responses[tf.event_slug(tf.floor(now))] = event(200.0, None, "MARKET_STATUS_OPEN")
+    return responses
+
+
+def test_hourly_history_is_24_past_windows_plus_the_live_one_each_an_hour_long():
+    ws = load_history(FakeClient(frame_responses(HOURLY, NOW_H)), NOW_H, timeframe=HOURLY, sleep=nosleep)
+    assert len(ws) == 25 and [w.start for w in ws] == sorted(w.start for w in ws)
+    assert ws[-1].start == datetime(2026, 10, 8, 5, 0, tzinfo=UTC) and ws[-1].close is None
+    assert all(w.length == timedelta(hours=1) for w in ws) and ws[0].end == ws[0].start + timedelta(hours=1)
+    assert ws[0].settled and ws[0].result == "UP"
+
+
+def test_daily_history_is_30_past_days_plus_the_live_one_and_knows_the_25_hour_day():
+    now = datetime(2026, 11, 2, 12, 0, tzinfo=UTC)
+    ws = load_history(FakeClient(frame_responses(DAILY, now)), now, timeframe=DAILY, sleep=nosleep)
+    assert len(ws) == 31
+    by_start = {w.start: w for w in ws}
+    assert by_start[datetime(2026, 10, 31, 21, 0, tzinfo=UTC)].length == timedelta(hours=25)
+    assert ws[-1].start == datetime(2026, 11, 1, 22, 0, tzinfo=UTC)
+
+
+def test_daily_windows_missing_before_the_market_existed_are_none_not_errors():
+    now = datetime(2026, 10, 8, 5, 0, tzinfo=UTC)
+    started = datetime(2026, 10, 4, 21, 0, tzinfo=UTC)
+    responses = {s: r for s, r in frame_responses(DAILY, now).items() if s >= DAILY.event_slug(started)}
+    ws = load_history(FakeClient(responses), now, timeframe=DAILY, sleep=nosleep)
+    gaps = [w for w in ws if w.error == NO_MARKET]
+    assert len(gaps) == 31 - 4 and all(w.start < started for w in gaps)  # 10-04, 05, 06 settled + 10-07 live exist
+
+
+def test_daily_bulk_request_resolves_a_neighbouring_utc_hour_and_stays_under_100_slugs():
+    start = datetime(2026, 11, 1, 22, 0, tzinfo=UTC)
+    alt = DAILY.event_slugs(start)[1]  # the day named an hour earlier
+    c = FakeClient({alt: event(10.0, 11.0)})
+    found = fetch_windows_bulk(c, [start], nosleep, DAILY)
+    assert found[start].settled and found[start].length == DAILY.length(start)
+    many = DAILY.past_starts(datetime(2026, 12, 1, tzinfo=UTC))
+    fetch_windows_bulk(FakeClient({}), many, nosleep, DAILY)
+    c2 = FakeClient({})
+    fetch_windows_bulk(c2, many, nosleep, DAILY)
+    assert all(len(call) <= 100 for call in c2.list_calls) and sum(len(call) for call in c2.list_calls) == 90
+
+
+def test_each_frame_has_its_own_cache_file():
+    assert history_cache(FIFTEEN_MIN).name == "history.json"
+    assert history_cache(HOURLY).name == "history-1h.json" and history_cache(DAILY).name == "history-1d.json"
+
+
+def test_hourly_history_uses_its_cache_and_does_not_refetch_settled_windows(tmp_path):
+    cache = tmp_path / "h.json"
+    c1 = FakeClient(frame_responses(HOURLY, NOW_H))
+    load_history(c1, NOW_H, timeframe=HOURLY, cache_path=cache, sleep=nosleep)
+    c2 = FakeClient(frame_responses(HOURLY, NOW_H))
+    load_history(c2, NOW_H, timeframe=HOURLY, cache_path=cache, sleep=nosleep)
+    assert sum(len(call) for call in c1.list_calls) == 25 and sum(len(call) for call in c2.list_calls) == 1  # only the live window

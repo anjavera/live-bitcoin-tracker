@@ -5,7 +5,8 @@ import math
 from live_bitcoin_tracker.proxy import http_get_json
 
 INDEX_URL = ("https://gateway.polymarket.us/v1/asset-prices/history"
-             "?assets=crypto:btc&bucket=ASSET_PRICE_BUCKET_1S&to=0&from={from_ts}")
+             "?assets=crypto:btc&bucket={bucket}&to=0&from={from_ts}")
+DEFAULT_BUCKET = "ASSET_PRICE_BUCKET_1S"  # one candle per second; the hourly and daily charts use 5 s and 1 min candles
 LOOKBACK_SECONDS = 15  # recent enough to be live, wide enough to hold a real tick if one second is missing
 
 
@@ -58,14 +59,17 @@ def fetch_index(get_json=http_get_json, now: float | None = None) -> tuple[float
     import time
 
     try:
-        return parse_index(get_json(INDEX_URL.format(from_ts=int((now or time.time()) - LOOKBACK_SECONDS))))
+        return parse_index(get_json(INDEX_URL.format(bucket=DEFAULT_BUCKET, from_ts=int((now or time.time()) - LOOKBACK_SECONDS))))
     except Exception:
         return None
 
 
-def fetch_index_history(since: int, get_json=http_get_json) -> list[tuple[int, float]]:
-    """Index ticks from `since` (unix seconds) to now as (seconds, price); [] on any failure."""
+def fetch_index_history(since: int, get_json=http_get_json, bucket: str = DEFAULT_BUCKET) -> list[tuple[int, float]]:
+    """Index candles from `since` (unix seconds) to now as (seconds, close price); [] on any failure.
+
+    With the default 1-second bucket every candle is one tick. Coarser buckets give one point per bucket (its close).
+    """
     try:
-        return parse_index_history(get_json(INDEX_URL.format(from_ts=int(since))))
+        return parse_index_history(get_json(INDEX_URL.format(bucket=bucket, from_ts=int(since))))
     except Exception:
         return []

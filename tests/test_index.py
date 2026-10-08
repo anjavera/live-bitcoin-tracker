@@ -1,6 +1,6 @@
 import pytest
 
-from live_bitcoin_tracker.index import INDEX_URL, fetch_index, parse_index
+from live_bitcoin_tracker.index import DEFAULT_BUCKET, INDEX_URL, fetch_index, fetch_index_history, parse_index
 
 
 def payload(*closes, tick_counts=None, start=1000):
@@ -12,7 +12,16 @@ def payload(*closes, tick_counts=None, start=1000):
 
 def test_url_is_the_public_btc_one_second_series():
     assert "gateway.polymarket.us/v1/asset-prices/history" in INDEX_URL
-    assert "assets=crypto:btc" in INDEX_URL and "ASSET_PRICE_BUCKET_1S" in INDEX_URL
+    assert "assets=crypto:btc" in INDEX_URL and "{bucket}" in INDEX_URL
+    assert "ASSET_PRICE_BUCKET_1S" in INDEX_URL.format(bucket=DEFAULT_BUCKET, from_ts=0)
+
+
+def test_history_can_ask_for_coarser_candles_for_the_longer_charts():
+    seen = []
+    fetch_index_history(1000, get_json=lambda url: seen.append(url) or {}, bucket="ASSET_PRICE_BUCKET_1M")
+    assert "bucket=ASSET_PRICE_BUCKET_1M" in seen[0] and "from=1000" in seen[0]
+    fetch_index_history(1000, get_json=lambda url: seen.append(url) or {})
+    assert "bucket=ASSET_PRICE_BUCKET_1S" in seen[1]
 
 
 def test_parse_takes_the_latest_real_candle():

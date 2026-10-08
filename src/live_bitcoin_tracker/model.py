@@ -12,10 +12,11 @@ class Window:
     status: str = ""
     volume: float | None = None
     error: str | None = None
+    length: timedelta = timedelta(minutes=15)  # 15 min, 1 h or the real length of a daily window (23 to 25 h)
 
     @property
     def end(self) -> datetime:
-        return self.start + timedelta(minutes=15)
+        return self.start + self.length
 
     @property
     def settled(self) -> bool:

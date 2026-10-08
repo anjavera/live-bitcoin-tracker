@@ -7,19 +7,18 @@ from live_bitcoin_tracker.calibration import Calibration
 from live_bitcoin_tracker.history import NO_MARKET
 from live_bitcoin_tracker.model import LiveTick, Window
 from live_bitcoin_tracker.proxy import apply_bias, composite
-from live_bitcoin_tracker.windows import MARKET_SLUG, floor_window
+from live_bitcoin_tracker.timeframes import FIFTEEN_MIN, Timeframe
 
 STALE_SECONDS = 10
-STRIP_WINDOWS = 96
 MIN_CALIBRATION_SAMPLES = 8
 RETRY_UNSETTLED_AFTER = 20  # seconds between reloads while a past window is unsettled
 REFRESH_EVERY = 300  # seconds between reloads of a complete history
-STEP = timedelta(minutes=15)
 TICK_KEEP = timedelta(hours=1)
 
 
 @dataclass
 class WidgetState:
+    timeframe: Timeframe = FIFTEEN_MIN  # which Up/Down market family this state tracks
     windows: list[Window] = field(default_factory=list)
     ticks: dict[str, LiveTick] = field(default_factory=dict)  # latest tick per market slug
     ticks_at: dict[str, datetime] = field(default_factory=dict)
@@ -43,8 +42,11 @@ class WidgetState:
         for slug in [k for k, at in self.ticks_at.items() if now - at > TICK_KEEP]:
             del self.ticks[slug], self.ticks_at[slug]
 
+    def live_slugs(self, now: datetime) -> list[str]:
+        return self.timeframe.market_slugs(self.timeframe.floor(now))
+
     def live_tick(self, now: datetime) -> LiveTick | None:
-        return self.ticks.get(MARKET_SLUG.format(floor_window(now)))
+        return next((self.ticks[s] for s in self.live_slugs(now) if s in self.ticks), None)
 
     def apply_quotes(self, quotes: dict[str, float | None], now: datetime) -> None:
         self.quotes, self.quotes_at = quotes, now
@@ -57,27 +59,26 @@ class WidgetState:
         return {w.start: w for w in self.windows}
 
     def strip_windows(self, now: datetime) -> list[Window]:
-        """The 96 windows before the live one; a missing start becomes an empty placeholder in place."""
-        live = floor_window(now)
-        known = self._by_start()
-        starts = [live - i * STEP for i in range(STRIP_WINDOWS, 0, -1)]
-        return [known.get(s) or Window(start=s, open=None, close=None) for s in starts]
+        """The windows before the live one (96, 24 or 30); a missing start becomes an empty placeholder in place."""
+        tf, known = self.timeframe, self._by_start()
+        return [known.get(s) or Window(start=s, open=None, close=None, length=tf.length(s)) for s in tf.past_starts(now)]
 
     def table_windows(self, now: datetime) -> list[Window]:
-        """Table rows, oldest first: the 96 past windows, then the live one."""
+        """Table rows, oldest first: the past windows, then the live one."""
         return self.strip_windows(now) + [self.live_window(now)]
 
     def live_window(self, now: datetime) -> Window:
-        start = floor_window(now)
-        return self._by_start().get(start) or Window(start=start, open=None, close=None)
+        start = self.timeframe.floor(now)
+        return self._by_start().get(start) or Window(start=start, open=None, close=None, length=self.timeframe.length(start))
 
     def live_market_missing(self, now: datetime) -> bool:
         """True when history says Polymarket has not published a market for the live window."""
-        window = self._by_start().get(floor_window(now))
+        window = self._by_start().get(self.timeframe.floor(now))
         return window is not None and window.error == NO_MARKET
 
     def is_stale(self, kind: str, now: datetime) -> bool:
-        at = {"tick": self.ticks_at.get(MARKET_SLUG.format(floor_window(now))), "index": self.index_at}.get(kind, self.quotes_at)
+        tick_at = next((self.ticks_at[s] for s in self.live_slugs(now) if s in self.ticks_at), None)
+        at = {"tick": tick_at, "index": self.index_at}.get(kind, self.quotes_at)
         return at is None or (now - at).total_seconds() > STALE_SECONDS
 
     def proxy_price(self, now: datetime) -> float | None:
@@ -116,7 +117,7 @@ class WidgetState:
     def needs_history_refresh(self, now: datetime) -> bool:
         if not self.windows or self.history_at is None:
             return True
-        live = floor_window(now)
+        live = self.timeframe.floor(now)
         if live not in self._by_start():
             return True
         age = (now - self.history_at).total_seconds()
