@@ -3,7 +3,7 @@
 All notable changes to this project. Format follows [Keep a Changelog](https://keepachangelog.com/);
 the project uses [semantic versioning](https://semver.org/).
 
-## [Unreleased] - first public release (0.1.0)
+## [0.1.0] - 2026-10-08 (first public release)
 
 ### Added
 - **One window, three time frames.** The desktop window has tabs for the 15-minute, hourly and daily BTC Up/Down
@@ -28,11 +28,17 @@ the project uses [semantic versioning](https://semver.org/).
   and a release workflow. CI runs on Linux, macOS and Windows.
 - MIT licence.
 
+### Also in this release
+- App icon (window, task bar, Linux menu entry, Windows and macOS builds) and a social preview picture for the GitHub page.
+- Windows file properties (product name and version) on the desktop exe.
+- A written code signing policy and privacy statement in the README, for the free open-source signing programme we are applying to.
+
 ### Known limitations
+- **macOS is visually untested:** the build is checked by automated tests only; nobody has looked at it on a real Mac. Linux and Windows are tested.
+- The downloads are not code-signed yet, so Windows and macOS warn the first time; installing with `uv` avoids the warning.
 - Polymarket US's daily markets began on 2026-10-04, so the 30-day table shows "none" for earlier days for now.
 - The daily market slug carries the UTC start (21:00 in summer, 22:00 in winter). The app also tries the neighbouring hour,
   but this has not been observed live across a daylight-saving change yet (next one: 2026-11-01).
 - The terminal widget and `pm btc15` cover the 15-minute market only.
-- The Windows build was tested on Windows Server 2022 (build, 423 tests, live screenshots of all three tabs); it has not been tried on a desktop Windows 10/11, and the macOS build has not been tried by hand.
-- The apps are not code-signed, so Windows and macOS show a one-time warning.
+- The Windows build was tested on Windows Server 2022 (build, 423 tests, live screenshots of all three tabs); it has not been tried on a desktop Windows 10/11.
 - Read-only: nothing in this project places, changes or cancels orders.

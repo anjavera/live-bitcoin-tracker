@@ -26,3 +26,6 @@ jobs:
           QT_QPA_PLATFORM: offscreen
       - run: uv run bitcoin-tracker-tui --version
       - run: uv run bitcoin-tracker --version
+      - name: Windows file properties parse (the release build uses them)
+        if: runner.os == 'Windows'
+        run: uv run --with pyinstaller python packaging/check_version_file.py

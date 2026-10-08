@@ -80,7 +80,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: >
-          uv run --with pyinstaller pyinstaller --onefile --windowed --name bitcoin-tracker --icon packaging/icon.ico
+          uv run --with pyinstaller pyinstaller --onefile --windowed --name bitcoin-tracker --icon packaging/icon.ico --version-file packaging/windows_version_info.txt
           --collect-submodules live_bitcoin_tracker --collect-data live_bitcoin_tracker --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
           --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
           packaging/tracker_gui_app.py
@@ -134,4 +134,4 @@ jobs:
         run: >
           gh release create "$GITHUB_REF_NAME" assets/*
           --title "Live Bitcoin Tracker $GITHUB_REF_NAME"
-          --notes "Unofficial live tracker for Polymarket US BTC Up or Down markets (15 minute, hourly and daily). Download the file for your system and run it; no Python needed. These builds are not code-signed, so Windows and macOS will warn the first time: see the README for the steps."
+          --notes-file packaging/release_notes.md

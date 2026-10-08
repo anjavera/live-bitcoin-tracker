@@ -20,27 +20,47 @@ history table (result green/red, change in dollars blue/orange). Switch tabs wit
 > **Unofficial.** Not affiliated with, endorsed by, or connected to Polymarket or CF Benchmarks.
 > Read-only market data. Nothing here places orders, and nothing here is financial advice.
 
-**Status:** works on Linux, and the Windows build was built, tested (423 tests) and run with live data on a Windows Server 2022
-machine (2026-10-08); it has not yet been tried on a desktop Windows 10/11 or on a Mac by hand. Design notes: [`docs/DESIGN.md`](docs/DESIGN.md).
+**Status (v0.1.0):** **Linux and Windows are tested**: the Windows build was built, tested (423 tests) and run with live data on a
+Windows Server 2022 machine, and Linux is used daily. **macOS is built and checked by automated tests, but is visually untested**:
+nobody has looked at it on a real Mac yet. Design notes: [`docs/DESIGN.md`](docs/DESIGN.md).
 
-## Install (no Python needed)
+## Install
+
+### Easiest: with Python (no security warnings)
+
+If you can install [uv](https://docs.astral.sh/uv/) (a one-line install; it also fetches Python for you), this is the smoothest route.
+Windows and macOS only show their "unknown app" warnings for files downloaded in a browser, and this route has none.
+
+```
+# 1. install uv once (Linux and macOS):
+curl -LsSf https://astral.sh/uv/install.sh | sh
+#    ...or on Windows, in PowerShell:
+#    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# 2. install and run the tracker:
+uv tool install "live-bitcoin-tracker[gui] @ git+https://github.com/anjavera/live-bitcoin-tracker"
+bitcoin-tracker
+```
+
+Options: `--timeframe 15m|1h|1d` (otherwise it opens on the tab you used last), `--keyless` (ignore any API keys),
+`--snapshot out.png` (save a picture and exit). To update later: run the `uv tool install` line again with `--force`.
+
+### Or download the app (no Python needed)
 
 Download the file for your computer from the [Releases page](../../releases/latest) and run it.
 
 | Your computer | Download | How to start it |
 |---|---|---|
-| **Windows** | `bitcoin-tracker-windows-x86_64.exe` | Double-click it. Windows may say it "protected your PC" because the app is not code-signed: click **More info**, then **Run anyway**. |
-| **Mac** (Apple Silicon) | `bitcoin-tracker-macos-arm64.zip` | Unzip it, then right-click **bitcoin-tracker** and choose **Open** the first time (the app is not code-signed). |
+| **Windows** | `bitcoin-tracker-windows-x86_64.exe` | Double-click it. Windows will say it "protected your PC" because the app is **not code-signed yet**: click **More info**, then **Run anyway**. |
+| **Mac** (Apple Silicon) | `bitcoin-tracker-macos-arm64.zip` | Unzip it, then right-click **bitcoin-tracker** and choose **Open** the first time (the app is not code-signed). **Not yet looked at on a real Mac, see the status above.** |
 | **Linux** | `bitcoin-tracker-linux-x86_64` + `install-gui.sh` | In the download folder run `sh install-gui.sh`. This adds **Live Bitcoin Tracker** to your app menu. On an X11 desktop you may also need `sudo apt install libxcb-cursor0`; the app tells you if so. |
 
-The apps are not code-signed (that needs paid developer accounts), which is why Windows and macOS warn once.
-If something does not work on your system, please [open an issue](../../issues) with what you saw.
+Code signing costs money or needs an approval process, so it is not in place for this first release; we are applying for free
+signing for open-source projects (see [Code signing policy](#code-signing-policy)). Until it is in place, the warning is expected and
+the files are built automatically from this repository by the public release workflow. If something does not work on your
+system, please [open an issue](../../issues) with what you saw.
 
-**Already use Python?** `uv tool install "live-bitcoin-tracker[gui] @ git+https://github.com/anjavera/live-bitcoin-tracker"`
-then run `bitcoin-tracker`. Options: `--timeframe 15m|1h|1d` (otherwise it opens on the tab you used last),
-`--keyless` (ignore any API keys), `--snapshot out.png` (save a picture and exit).
-
-Keys: **1 / 2 / 3** switch tabs, **v** table/strip, **r** reloads, **Ctrl+Q** quits. The **View** menu has a local-time
+**Using the app:** keys **1 / 2 / 3** switch tabs, **v** table/strip, **r** reloads, **Ctrl+Q** quits. The **View** menu has a local-time
 option and always-on-top.
 
 The look is modelled on Polymarket's own market page (dark theme, green Up / red Down). The live price comes from
@@ -125,6 +145,29 @@ The live price comes from Polymarket's own BTC index (the one the markets settle
 falls back to an average of Coinbase, Kraken, Bitstamp and Gemini and marks the price as approximate (≈).
 Windows are coloured from the real settled result; the live window is provisional. Change bands are scaled to the time
 frame (an hour or a day moves more than a quarter hour): the key under the table shows the dollar amounts for the tab you are on.
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+*(This applies once an application to SignPath Foundation is approved. Until then the downloads are unsigned.)*
+
+- **How a release is made:** the version tag triggers the public workflow [`release.yml`](.github/workflows/release.yml), which builds the
+  apps from this repository's source on GitHub's own servers. Nothing is built on a personal computer.
+- **Committers and reviewers:** [anjavera](https://github.com/anjavera). Changes are reviewed and merged by the repository owner.
+- **Approvers** (the person who approves each release for signing): [anjavera](https://github.com/anjavera). Every release needs a manual
+  approval before it is signed.
+- The repository owner uses multi-factor authentication on GitHub and on SignPath.
+- Only binaries built from this repository are signed; the third-party libraries it uses are listed in
+  [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+### Privacy
+
+The app collects nothing about you: there is no account, no analytics and no tracking. When it runs it only **reads public market data**.
+It requests prices and results from Polymarket's public servers (`gateway.polymarket.us`, `api.polymarket.us`) and, as a fallback price
+source, from the public price APIs of Coinbase, Kraken, Bitstamp and Gemini. These requests carry no personal information, only the
+market and time range being looked up. If you choose to add your own Polymarket API keys, they are used only to sign requests to
+Polymarket and are never sent anywhere else. The app keeps a small cache of settled market results and its window settings on your
+own computer. It places no orders.
 
 ## License
 
