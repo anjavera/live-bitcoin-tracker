@@ -14,20 +14,21 @@ class ChartPoint:
     price: float
 
 
-def _in_window(t: int, start: datetime) -> bool:
+def _in_window(t: int, start: datetime, seconds: int = WINDOW_SECONDS) -> bool:
     first = int(start.timestamp())
-    return first <= t < first + WINDOW_SECONDS
+    return first <= t < first + seconds
 
 
-def window_points(ticks: list[tuple[int, float]], start: datetime) -> list[ChartPoint]:
-    """Ticks that fall inside the 15-minute window starting at `start`, oldest first, one per second (last wins)."""
-    by_second = {t: price for t, price in sorted(ticks, key=lambda tick: tick[0]) if _in_window(t, start)}
+def window_points(ticks: list[tuple[int, float]], start: datetime, seconds: int = WINDOW_SECONDS) -> list[ChartPoint]:
+    """Ticks that fall inside the window of `seconds` starting at `start`, oldest first, one per second (last wins)."""
+    by_second = {t: price for t, price in sorted(ticks, key=lambda tick: tick[0]) if _in_window(t, start, seconds)}
     return [ChartPoint(t, price) for t, price in sorted(by_second.items())]
 
 
-def append_point(points: list[ChartPoint], t: int, price: float, start: datetime) -> list[ChartPoint]:
+def append_point(points: list[ChartPoint], t: int, price: float, start: datetime,
+                 seconds: int = WINDOW_SECONDS) -> list[ChartPoint]:
     """`points` with one more tick; outside-window ticks are ignored and a same-second tick replaces the old one."""
-    if not _in_window(t, start):
+    if not _in_window(t, start, seconds):
         return points
     return sorted([p for p in points if p.t != t] + [ChartPoint(t, price)], key=lambda p: p.t)
 

@@ -300,3 +300,114 @@ def test_proxy_points_are_replaced_once_the_index_arrives(make):
     c._apply_index(84123.45, ts)
     assert c._proxy_seconds == set()
     assert [p.price for p in c.chart_points] == [84123.45]
+
+
+# ---- hourly and daily frames --------------------------------------------------------------------------
+from live_bitcoin_tracker.history import NO_MARKET  # noqa: E402
+from live_bitcoin_tracker.timeframes import DAILY, FIFTEEN_MIN, HOURLY  # noqa: E402
+
+
+def frame_history(tf, now):
+    live = tf.floor(now)
+    past = [Window(s, open=84000.0, close=84010.0, length=tf.length(s)) for s in tf.past_starts(now)]
+    return past + [Window(live, open=84005.0, close=None, length=tf.length(live))]
+
+
+def frame_sources(loads=None, feeds=None, charts=None, **over):
+    def load(tf, now):
+        if loads is not None:
+            loads.append(tf.key)
+        return frame_history(tf, now)
+
+    def feed(tf, cb):
+        if feeds is not None:
+            feeds.append(tf.key)
+        return None
+
+    def chart(since, bucket):
+        if charts is not None:
+            charts.append((since, bucket))
+        return []
+
+    return make_sources(load_frame_history=load, frame_feed_factory=feed, fetch_frame_index_history=chart, **over)
+
+
+def test_all_three_frames_load_history_the_active_one_first_and_one_at_a_time(make):
+    order, in_flight, peak = [], [0], [0]
+    lock = threading.Lock()
+
+    def tracked(key, fn):
+        def run(*args):
+            with lock:
+                in_flight[0] += 1
+                peak[0] = max(peak[0], in_flight[0])
+                order.append(key)
+            time.sleep(0.05)  # long enough that overlapping loads would be seen
+            try:
+                return fn(*args)
+            finally:
+                with lock:
+                    in_flight[0] -= 1
+        return run
+
+    sources = frame_sources(load_history=tracked("15m", history))
+    inner = sources.load_frame_history
+    sources.load_frame_history = lambda tf, now: tracked(tf.key, inner)(tf, now)
+    c = make(sources, timeframe=HOURLY)
+    c.start()
+    for _ in range(100):
+        pump(lambda: c._loading_key is None, timeout=2)
+        c.tick()
+        if all(s.windows for s in c.states.values()):
+            break
+    assert [len(c.states[k].windows) for k in ("15m", "1h", "1d")] == [97, 25, 31]
+    assert order[0] == "1h"  # the frame being shown is loaded before the hidden ones
+    assert sorted(order[:3]) == ["15m", "1d", "1h"] and peak[0] == 1
+
+
+def test_switching_frames_moves_state_chart_and_feed(make):
+    feeds, charts = [], []
+    c = make(frame_sources(feeds=feeds, charts=charts))
+    c.start()
+    assert pump(lambda: c.timeframe is FIFTEEN_MIN and c.chart_start is not None)
+    c.set_timeframe(HOURLY)
+    assert c.timeframe is HOURLY and c.state is c.states["1h"]
+    assert pump(lambda: charts and charts[-1][1] == "ASSET_PRICE_BUCKET_5S" and "1h" in feeds)
+    assert c.chart_start == HOURLY.floor(NOW) and c.chart_seconds == 3600
+    c.set_timeframe(DAILY)
+    assert pump(lambda: "1d" in feeds and charts[-1][1] == "ASSET_PRICE_BUCKET_1M")
+    assert c.chart_start == DAILY.floor(NOW) and c.chart_seconds == int(DAILY.length(DAILY.floor(NOW)).total_seconds())
+    c.set_timeframe(DAILY)  # switching to the frame already shown does nothing
+    assert feeds.count("1d") == 1
+
+
+def test_a_tick_from_the_hourly_feed_lands_in_the_hourly_state_only(make):
+    tick = LiveTick(slug=HOURLY.market_slug(HOURLY.floor(NOW)), up_price=0.42, best_bid=0.41, best_ask=0.43,
+                    last_trade=0.42, shares_traded=5.0)
+    sources = frame_sources()
+    sources.frame_feed_factory = lambda tf, cb: FakeFeed(cb, tick) if tf is HOURLY else None
+    c = make(sources, timeframe=HOURLY)
+    c.start()
+    assert pump(lambda: c.states["1h"].live_tick(NOW) is not None)
+    assert c.states["1h"].live_tick(NOW).up_price == 0.42 and c.states["15m"].live_tick(NOW) is None
+
+
+def test_index_price_is_shared_by_every_frame(make):
+    ts = int(NOW.timestamp()) - 1
+    c = make(frame_sources(fetch_index=lambda: (84123.45, ts)))
+    c.start()
+    assert pump(lambda: all(s.index_price == 84123.45 for s in c.states.values()))
+
+
+def test_windows_before_a_market_existed_are_not_reported_as_a_failed_load(make):
+    def load(tf, now):
+        live = tf.floor(now)
+        gaps = [Window(s, open=None, close=None, error=NO_MARKET, length=tf.length(s)) for s in tf.past_starts(now)[:26]]
+        real = [Window(s, open=1.0, close=2.0, length=tf.length(s)) for s in tf.past_starts(now)[26:]]
+        return gaps + real + [Window(live, open=1.0, close=None, length=tf.length(live))]
+
+    c = make(frame_sources(), timeframe=DAILY)
+    c._sources.load_frame_history = load
+    c.start()
+    assert pump(lambda: len(c.states["1d"].windows) == 31 and not c.states["1d"].loading)
+    assert c.states["1d"].error is None
