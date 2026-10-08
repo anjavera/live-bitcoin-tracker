@@ -21,12 +21,12 @@ fi
 cat > "$HOME/.local/share/applications/bitcoin-tracker-tui.desktop" <<DESKTOP
 [Desktop Entry]
 Type=Application
-Name=BTC 15m Widget
-Comment=Live Polymarket US BTC Up or Down 15-minute tracker
+Name=Live Bitcoin Tracker (terminal)
+Comment=Live Polymarket US BTC Up or Down 15-minute tracker (terminal)
 Exec=$HOME/.local/bin/bitcoin-tracker-tui
 $ICON_LINE
 Terminal=true
 Categories=Utility;Finance;
 DESKTOP
-echo "Installed. Find 'BTC 15m Widget' in your app menu, or run: $HOME/.local/bin/bitcoin-tracker-tui"
+echo "Installed. Find 'Live Bitcoin Tracker (terminal)' in your app menu, or run: $HOME/.local/bin/bitcoin-tracker-tui"
 echo "(If the command is not found, add \$HOME/.local/bin to your PATH.)"

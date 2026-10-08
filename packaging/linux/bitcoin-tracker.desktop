@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=BTC 15m Tracker
-Comment=Live Polymarket US BTC Up or Down 15-minute tracker (desktop window)
+Name=Live Bitcoin Tracker
+Comment=Live Polymarket US BTC Up or Down tracker: 15 minute, hourly and daily (desktop window)
 Exec=bitcoin-tracker
 Icon=bitcoin-tracker-tui
 Terminal=false

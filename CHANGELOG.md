@@ -6,6 +6,13 @@ the project uses [semantic versioning](https://semver.org/).
 ## [Unreleased] - first public release (0.1.0)
 
 ### Added
+- **One window, three time frames.** The desktop window has tabs for the 15-minute, hourly and daily BTC Up/Down
+  markets, with the same design on each: price chart, odds, countdown and colour-coded history. Hourly shows the last
+  24 hours and daily the last 30 days. The daily window runs 5 PM ET to 5 PM ET and its close and countdown follow
+  Polymarket's daily market, including daylight-saving changes (23 and 25 hour days). Switch with the buttons or keys 1, 2, 3;
+  the window remembers the last tab, and `--timeframe` picks one at start.
+- Colour bands scale with the time frame; the colour key is one compact row that fits the smallest window.
+- The history table follows the newest row until you scroll away.
 - Live terminal widget (`bitcoin-tracker-tui`): ticker with price, price to beat, gap, countdown and Up/Down odds;
   24-hour colour-coded history table; strip view; colour key; ASCII coin whose ring is the analog countdown.
 - Desktop window (`bitcoin-tracker`, PySide6): live price chart for the current window, odds, 24-hour history table,
@@ -22,6 +29,10 @@ the project uses [semantic versioning](https://semver.org/).
 - MIT licence.
 
 ### Known limitations
+- Polymarket US's daily markets began on 2026-10-04, so the 30-day table shows "none" for earlier days for now.
+- The daily market slug carries the UTC start (21:00 in summer, 22:00 in winter). The app also tries the neighbouring hour,
+  but this has not been observed live across a daylight-saving change yet (next one: 2026-11-01).
+- The terminal widget and `pm btc15` cover the 15-minute market only.
 - Windows and macOS builds are produced by automated checks and have not been tried by hand yet.
 - The apps are not code-signed, so Windows and macOS show a one-time warning.
 - Read-only: nothing in this project places, changes or cancels orders.

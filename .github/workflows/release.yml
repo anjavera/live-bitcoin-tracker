@@ -133,5 +133,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: >
           gh release create "$GITHUB_REF_NAME" assets/*
-          --title "BTC 15m widget $GITHUB_REF_NAME"
-          --notes "Unofficial live tracker for Polymarket US BTC Up or Down 15-minute markets. Download the file for your system and run it; no Python needed. These builds are not code-signed, so Windows and macOS will warn the first time: see the README for the steps."
+          --title "Live Bitcoin Tracker $GITHUB_REF_NAME"
+          --notes "Unofficial live tracker for Polymarket US BTC Up or Down markets (15 minute, hourly and daily). Download the file for your system and run it; no Python needed. These builds are not code-signed, so Windows and macOS will warn the first time: see the README for the steps."

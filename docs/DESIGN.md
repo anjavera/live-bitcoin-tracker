@@ -5,13 +5,29 @@ places, changes or cancels orders.
 
 ## What it shows
 
-The last 24 hours (96 windows) of Polymarket US "BTC Up or Down: 15 min" markets, plus the live window with
-Up/Down odds, a live BTC price, the price to beat and a countdown.
+Polymarket US's "BTC Up or Down" markets in three time frames, with the same design for each: the live window with
+Up/Down odds, a live BTC price, the price to beat, a countdown and a price chart, over a history table.
+
+| Frame | History | Window | Slug |
+|---|---|---|---|
+| 15 min | 24 hours (96) | every quarter hour (UTC clock) | `btc-updown-15m-2026-10-08-0500z` |
+| Hourly | 24 hours (24) | every hour (UTC clock) | `btc-updown-1h-2026-10-08-0500z` |
+| Daily | 30 days (30) | 5:00 PM ET to 5:00 PM ET | `btc-updown-1d-2026-10-07-2100z` |
+
+The daily slug carries the window's UTC start, which is 21:00 while New York is on summer time and 22:00 in winter
+(so a daily window is 23 or 25 hours long on the two days the clocks change). Everything that differs between the frames
+is in `timeframes.py`; the daily frame computes its start from the New York clock, requests the neighbouring UTC hour
+as well, and takes the real open and close from the event's `assetPriceTerms`. Daily markets exist from 2026-10-04 and
+the hourly and 15-minute ones from 2026-09-22, so earlier rows show "none". The first daylight-saving change since the
+daily market started is 2026-11-01; the 25-hour day and the `2200z` naming are covered by unit tests but not yet seen live.
 
 ## Price source
 
-Polymarket settles each window on **CF Benchmarks' Bitcoin Real-Time Index (BRTI)**: the average of 60 BRTI
-prices in the last minute before each boundary, rounded to 2 decimals. The result is Up if close >= open.
+Polymarket settles every window of all three frames on **CF Benchmarks' Bitcoin Real-Time Index (BRTI)**: at each of the two
+boundaries the official value is the simple average of the 60 BRTI prices in the last minute before it, rounded to 2
+decimals. The result is Up if close >= open. (This is stated in each market's rules text. A single index tick can therefore
+disagree with the settled result when the move is small; the app only ever colours settled windows from Polymarket's own
+open and close.)
 Polymarket's API exposes the open (`assetPriceTerms.priceToBeat`) and, once settled, the close
 (`settlementPrice`). CF Benchmarks' own live feed is licensed data, so it is not used.
 
@@ -27,10 +43,11 @@ marked provisional.
 
 - **No API keys are needed** for the widget or `pm btc15`. Keys are optional: with them the widget uses the
   authenticated WebSocket feed (`feed: live (keyed)`); `--keyless` forces the public path.
-- **History:** settled windows addressed by slug `btc-updown-15m-YYYY-MM-DD-HHMMz`, fetched in one
-  `events.list` request (up to 100 windows) and cached locally; only new windows are fetched afterwards.
+- **History:** settled windows addressed by slug (`btc-updown-{15m,1h,1d}-YYYY-MM-DD-HHMMz`), fetched with one
+  `events.list` request per 100 slugs and cached locally, one cache file per frame; only new windows are fetched afterwards.
+  The window loads history for the tab you are on first, then the other two, one load at a time to stay clear of rate limits.
   Volume needs one extra request per window, so it is opt-in (`--volume`).
-- **Live window (keyless):** the public order book is polled every 2 seconds. Up price is the midpoint of best
+- **Live window (keyless):** the public order book of the tab's live market is polled every 2 seconds (only the visible tab has a live feed). Up price is the midpoint of best
   bid/ask (last trade if one side is empty). Odds fall back to best bid/offer and then the event's quotes right
   after a rollover.
 - **Rate limits:** Polymarket's REST API can trip a Cloudflare 1015 limit, so requests use retry with backoff, and
@@ -38,23 +55,24 @@ marked provisional.
 
 ## Display
 
-- Header: live price, price to beat, gap, countdown to the end of the window.
+- Header: live price, price to beat, gap, countdown to the end of the window (mm:ss; h:mm:ss for the daily frame).
 - Odds: Up/Down price and spread; market state (halted, suspended) when not open.
 - History: result **green = Up, red = Down**; fill is a net-change gradient, **blue = positive, orange =
   negative**, in 9 steps by absolute change: 0-10, 10-25, 25-50, 50-100, 100-200, 200-300, 300-400, 400-500,
-  500+ (dollars). The smallest step is a pale tint so it reads on dark backgrounds.
+  500+ (dollars) for the 15-minute frame; the hourly bands are twice those and the daily bands ten times (roughly the square root of the
+  longer window), and the colour key under the table shows the amounts for the tab in use. The smallest step is a pale tint so it reads on dark backgrounds.
 - Dark theme only. Palettes sit behind a `theme` argument so another theme could be added.
 
 ## Architecture
 
 One data layer, two front ends.
 
-- **Core (no UI imports):** `windows`, `model`, `history`, `feed`, `index`, `proxy`, `calibration`, `state`,
+- **Core (no UI imports):** `timeframes`, `windows`, `model`, `history`, `feed`, `index`, `proxy`, `calibration`, `state`,
   `colors`, `sources`, `paths`, `client`.
 - **Terminal widget** (`bitcoin-tracker-tui`, Textual): `app.py`, `render.py`, `panel.py`.
 - **Desktop window** (`bitcoin-tracker`, PySide6, optional `gui` extra): `src/live_bitcoin_tracker/gui/`.
-  - `controller.py` owns the state and data sources and emits Qt signals; it has no widgets and is testable
-    headless.
+  - `controller.py` owns one `WidgetState` per time frame plus the shared price sources, and emits Qt signals; it has no widgets and is
+    testable headless. Switching tabs moves the chart, the live feed and the table to the other frame.
   - `series.py` turns index ticks into chart points (pure functions, no Qt).
   - `theme.py`, `window.py` and `widgets/` (header, chart, odds, history table, strip, legend, status bar, coin).
   - The chart is drawn with QPainter, because QtCharts is not part of PySide6-Essentials.
@@ -73,12 +91,12 @@ The look follows Polymarket's public event page (dark background, green Up and r
 the 24-hour history and has no trading. It copies only the general style and colours, not the logo, name or
 artwork.
 
-- **Chart:** the live 15-minute window on the X axis, price line, dashed price-to-beat line, orange dot for the
+- **Chart:** the live window (15 minutes, an hour or a day) on the X axis, price line, dashed price-to-beat line, orange dot for the
   latest price, and a faint blue (above) or orange (below) fill. Index history for the elapsed part of the window
-  is fetched once at start (1-second candles), then extended from the live poll.
+  is fetched once per window (1-second candles for 15 minutes, 5-second for the hour, 1-minute for the day), then extended from the live poll.
 - **Countdown:** large `mm:ss` with a ring coin whose arc shows elapsed time and the current lean.
 - **Odds:** Up/Down as percent and cents, a split probability bar, and the spread.
-- **Keys:** `Ctrl+Q` quit, `v` table/strip, `r` refresh. The View menu has a local-time option and always-on-top.
+- **Keys:** `1` `2` `3` switch tabs (the last tab is remembered), `Ctrl+Q` quit, `v` table/strip, `r` refresh. The View menu has a local-time option and always-on-top.
 
 ## Packaging
 
@@ -91,7 +109,7 @@ artwork.
 
 ## Testing
 
-Plain pytest covers colour-band boundaries, slug and window generation across hour and day boundaries, the proxy
+Plain pytest covers colour-band boundaries, slug and window generation for all three frames across hour, day and daylight-saving boundaries, the proxy
 composite, the Up/Down rule, the controller, chart series and the table view-model with fake data sources and an
 injected clock. Widget tests run with `QT_QPA_PLATFORM=offscreen`.
 

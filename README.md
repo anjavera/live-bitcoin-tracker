@@ -1,51 +1,67 @@
-# Unofficial Bitcoin Up or Down 15 Minute Widget Tracker
+# Live Bitcoin Tracker
 
-A live widget for Polymarket US's **"BTC Up or Down: 15 min"** markets: the last 24 hours of
-15-minute windows, colour-coded by result and net change, plus the live window with odds,
-a live BTC price and a countdown.
+A live tracker for Polymarket US's **"Bitcoin Up or Down"** markets, in three time frames in one window:
+
+| Tab | Shows | History | Closes |
+|---|---|---|---|
+| **15 min** | the live 15-minute window: price chart, Up/Down odds, countdown | last 24 hours (96 windows) | every quarter hour |
+| **Hourly** | the same for the live hour | last 24 hours (24 windows) | every hour on the hour |
+| **Daily** | the same for the live day | last 30 days (30 windows) | 5:00 PM ET, whenever Polymarket's daily market closes |
+
+Each tab has the same design: the live price against the price to beat, a countdown, the odds, and a colour-coded
+history table (result green/red, change in dollars blue/orange). Switch tabs with the buttons or the **1**, **2**, **3** keys.
+
+![15 minute tab](docs/screenshots/15m.png)
+![Hourly tab](docs/screenshots/1h.png)
+![Daily tab](docs/screenshots/1d.png)
 
 > **Unofficial.** Not affiliated with, endorsed by, or connected to Polymarket or CF Benchmarks.
 > Read-only market data. Nothing here places orders, and nothing here is financial advice.
 
-**Status:** works today as a terminal app on Linux (tested); Windows and macOS builds are produced by
-automated checks and have not been tried by hand yet. See
-[`docs/DESIGN.md`](docs/DESIGN.md).
+**Status:** works today on Linux (tested); Windows and macOS builds are produced by automated checks and have not
+been tried by hand yet. Design notes: [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## Install (no Python needed)
 
-Download the file for your computer from the [Releases page](../../releases/latest) and run it. It opens a
-window with the live widget; press **q** to quit. The window needs to be at least 80 columns by 16 rows.
+Download the file for your computer from the [Releases page](../../releases/latest) and run it.
 
 | Your computer | Download | How to start it |
 |---|---|---|
-| **Windows** | `bitcoin-tracker-tui-windows-x86_64.exe` | Double-click it. Windows may say it "protected your PC" because the app is not code-signed: click **More info**, then **Run anyway**. |
-| **Mac** (Apple Silicon) | `bitcoin-tracker-tui-macos-arm64` | Open Terminal, then run `chmod +x ~/Downloads/bitcoin-tracker-tui-macos-arm64 && ~/Downloads/bitcoin-tracker-tui-macos-arm64`. If macOS blocks it, open **System Settings > Privacy & Security** and choose **Open Anyway**. |
-| **Linux** | `bitcoin-tracker-tui-linux-x86_64` + `install.sh` | In the download folder run `sh install.sh`. This adds **BTC 15m Widget** to your app menu (it opens in a terminal window). |
+| **Windows** | `bitcoin-tracker-windows-x86_64.exe` | Double-click it. Windows may say it "protected your PC" because the app is not code-signed: click **More info**, then **Run anyway**. |
+| **Mac** (Apple Silicon) | `bitcoin-tracker-macos-arm64.zip` | Unzip it, then right-click **bitcoin-tracker** and choose **Open** the first time (the app is not code-signed). |
+| **Linux** | `bitcoin-tracker-linux-x86_64` + `install-gui.sh` | In the download folder run `sh install-gui.sh`. This adds **Live Bitcoin Tracker** to your app menu. On an X11 desktop you may also need `sudo apt install libxcb-cursor0`; the app tells you if so. |
 
 The apps are not code-signed (that needs paid developer accounts), which is why Windows and macOS warn once.
 If something does not work on your system, please [open an issue](../../issues) with what you saw.
 
-**Already use Python?** `uv tool install git+https://github.com/anjavera/live-bitcoin-tracker`
-then run `bitcoin-tracker-tui`.
+**Already use Python?** `uv tool install "live-bitcoin-tracker[gui] @ git+https://github.com/anjavera/live-bitcoin-tracker"`
+then run `bitcoin-tracker`. Options: `--timeframe 15m|1h|1d` (otherwise it opens on the tab you used last),
+`--keyless` (ignore any API keys), `--snapshot out.png` (save a picture and exit).
 
-## Desktop window
-
-Prefer a normal window to a terminal? There is also a desktop app with the same data: a live price chart for the
-current 15 minutes, the Up/Down odds, and the 24-hour history table. It is read-only, like the terminal widget.
-
-| Your computer | Download | How to start it |
-|---|---|---|
-| **Windows** | `bitcoin-tracker-windows-x86_64.exe` | Double-click it (same one-time \"protected your PC\" warning as above: **More info**, then **Run anyway**). |
-| **Mac** (Apple Silicon) | `bitcoin-tracker-macos-arm64.zip` | Unzip it, then right-click **bitcoin-tracker** and choose **Open** the first time (the app is not code-signed). |
-| **Linux** | `bitcoin-tracker-linux-x86_64` + `install-gui.sh` | In the download folder run `sh install-gui.sh`. This adds **BTC 15m Tracker** to your app menu. On an X11 desktop you may also need `sudo apt install libxcb-cursor0`; the app tells you if so. |
-
-Keys: **v** switches table/strip, **r** reloads, **Ctrl+Q** quits. The **View** menu has a local-time option and
-always-on-top. **Already use Python?** `uv tool install "live-bitcoin-tracker[gui] @ git+https://github.com/anjavera/live-bitcoin-tracker"`
-then run `bitcoin-tracker` (`--keyless` ignores any API keys).
+Keys: **1 / 2 / 3** switch tabs, **v** table/strip, **r** reloads, **Ctrl+Q** quits. The **View** menu has a local-time
+option and always-on-top.
 
 The look is modelled on Polymarket's own market page (dark theme, green Up / red Down). The live price comes from
 Polymarket's own BTC index, the one the markets settle on; if that is unavailable the window falls back to an
-exchange average and marks it \"approx.\".
+exchange average and marks it "approx.".
+
+### Terminal version (15 minutes only)
+
+There is also a terminal widget for the 15-minute market: `bitcoin-tracker-tui-<system>` on the Releases page
+(Linux has `install.sh`), or `uv tool install git+https://github.com/anjavera/live-bitcoin-tracker` then
+`bitcoin-tracker-tui`. Press **q** to quit; the window needs to be at least 80 columns by 16 rows.
+
+## How the three time frames settle
+
+All three are settled by Polymarket on **CF Benchmarks' Bitcoin Real-Time Index (BRTI)**. At each boundary the official
+value is the simple average of the 60 BRTI prices in the last minute before it, rounded to 2 decimals; the window is **Up** if the
+end value is greater than or equal to the start value. This tracker shows Polymarket's own published open and close,
+so the history is exact. The live gap and the "UP?/DOWN?" mark are provisional because they use the latest price, not a
+60-second average. The daily window runs from 5:00 PM ET to 5:00 PM ET, so it follows daylight saving time and is 23 or 25
+hours long on the two days the clocks change.
+
+Polymarket US started its daily markets on 4 October 2026, so the first rows of the 30-day table read **none** until
+there are 30 days of history; the hourly and 15-minute markets go back further.
 
 ## No API keys needed
 
@@ -84,12 +100,13 @@ exposed, revoke it at <https://polymarket.us/developer>. This project only reads
 ## Usage
 
 ```
-uv sync
-uv run bitcoin-tracker-tui           # live terminal widget (add --keyless to ignore any API keys)
-uv run bitcoin-tracker-tui --snapshot  # print one plain-text frame and exit
-uv run bitcoin-tracker              # desktop window (needs: uv sync --extra gui)
-uv run pm btc15 --hours 6     # one-shot styled table, last 6 hours (add --volume for volumes; slower)
-uv run pytest                 # tests
+uv sync --extra gui
+uv run bitcoin-tracker                      # desktop window: 15 min, hourly and daily tabs
+uv run bitcoin-tracker --timeframe 1d       # start on the daily tab
+uv run bitcoin-tracker-tui                  # live terminal widget (15 minutes; add --keyless to ignore any API keys)
+uv run bitcoin-tracker-tui --snapshot       # print one plain-text frame and exit
+uv run pm btc15 --hours 6                   # one-shot styled table, last 6 hours (add --volume for volumes; slower)
+uv run pytest                               # tests (QT_QPA_PLATFORM=offscreen for the window tests on a server)
 ```
 
 Terminal widget keys: **q** quit, **v** table/strip view, **r** refresh, arrows/PgUp/PgDn scroll. On terminals of at
@@ -101,10 +118,11 @@ Other read-only commands: `uv run pm search "<text>"`, `pm price <market-slug>`,
 `pm orders`. Add `--json` before the command for machine-readable output. Rapid repeated calls can trip a
 Cloudflare rate limit; wait a minute.
 
-History for the last 24 hours loads in about a second with one request, and settled windows are cached locally.
+History for each tab loads with one or two requests, and settled windows are cached locally (one cache file per time frame).
 The live price comes from Polymarket's own BTC index (the one the markets settle on). If it is unavailable the app
-falls back to an average of Coinbase, Kraken, Bitstamp and Gemini and marks the price as approximate (&asymp;).
-Windows are coloured from the real settled result; the live window is provisional.
+falls back to an average of Coinbase, Kraken, Bitstamp and Gemini and marks the price as approximate (≈).
+Windows are coloured from the real settled result; the live window is provisional. Change bands are scaled to the time
+frame (an hour or a day moves more than a quarter hour): the key under the table shows the dollar amounts for the tab you are on.
 
 ## License
 
