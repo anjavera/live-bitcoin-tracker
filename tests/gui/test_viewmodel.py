@@ -1,3 +1,4 @@
+import pytest
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
@@ -201,3 +202,60 @@ def test_status_text_market_state_and_loading():
 
 def test_legend_bands_match_colors_edges():
     assert LEGEND_BANDS == ["10", "25", "50", "100", "200", "300", "400", "500", "1000+"]
+
+
+# ---- hourly and daily frames --------------------------------------------------------------------------
+from live_bitcoin_tracker.gui.viewmodel import countdown_text, legend_bands  # noqa: E402
+from live_bitcoin_tracker.timeframes import DAILY, FIFTEEN_MIN, HOURLY  # noqa: E402
+
+
+def frame_state(tf, now, live_open=100.0, close=None):
+    state = WidgetState(timeframe=tf)
+    state.set_history([Window(s, open=100.0, close=130.0, length=tf.length(s)) for s in tf.past_starts(now)]
+                      + [Window(tf.floor(now), open=live_open, close=close, status="OPEN", length=tf.length(tf.floor(now)))], now)
+    return state
+
+
+def test_countdown_is_mm_ss_or_h_mm_ss_for_the_daily_frame():
+    assert countdown_text(272.2) == "04:33" and countdown_text(0) == "00:00" and countdown_text(3599) == "59:59"
+    assert countdown_text(3 * 3600 + 5 * 60 + 9, hours=True) == "3:05:09"
+    assert countdown_text(25 * 3600, hours=True) == "25:00:00"
+
+
+def test_legend_bands_scale_with_the_frame():
+    assert legend_bands(FIFTEEN_MIN)[:3] == ["10", "25", "50"] and legend_bands(FIFTEEN_MIN)[-1] == "1000+"
+    assert legend_bands(HOURLY)[:3] == ["20", "50", "100"] and legend_bands(HOURLY)[-1] == "2000+"
+    assert legend_bands(DAILY)[:3] == ["100", "250", "500"] and legend_bands(DAILY)[-1] == "10000+"
+
+
+def test_the_same_move_gets_a_paler_band_on_a_longer_frame():
+    now = datetime(2026, 10, 8, 5, 20, tzinfo=timezone.utc)
+    quarter = table_rows(frame_state(FIFTEEN_MIN, now), now)[0]  # +30 on a 15-minute window
+    hourly = table_rows(frame_state(HOURLY, now), now)[0]  # the same +30 over an hour
+    assert quarter.chg_fill != hourly.chg_fill and quarter.chg_text == hourly.chg_text == "+30.00"
+
+
+def test_rows_per_frame_and_their_labels():
+    now = datetime(2026, 10, 8, 5, 20, tzinfo=timezone.utc)
+    hourly, daily = table_rows(frame_state(HOURLY, now), now), table_rows(frame_state(DAILY, now), now)
+    assert (len(hourly), len(daily)) == (25, 31) and hourly[-1].live and daily[-1].live
+    assert hourly[-1].label == "10-08 01:00-02:00"
+    assert daily[-1].label == "10-07 17:00 → 10-08 17:00"
+    assert table_rows(frame_state(HOURLY, now), now, local_time=True, local_tz=timezone.utc)[-1].label == "10-08 05:00-06:00"
+
+
+def test_header_for_the_daily_frame_counts_down_in_hours_to_the_real_close():
+    now = datetime(2026, 10, 8, 19, 0, tzinfo=timezone.utc)  # two hours before the 21:00Z (5 PM ET) close
+    state = frame_state(DAILY, now)
+    head = header_vm(state, now)
+    assert head.title == "BTC UP OR DOWN · DAILY" and head.countdown == "2:00:00"
+    assert head.elapsed_fraction == pytest.approx(22 / 24)
+    assert header_vm(frame_state(HOURLY, now.replace(minute=45)), now.replace(minute=45)).countdown == "15:00"
+
+
+def test_daily_status_explains_the_rows_before_polymarket_started_the_daily_markets():
+    now = datetime(2026, 10, 8, 5, 20, tzinfo=timezone.utc)
+    state = WidgetState(timeframe=DAILY)
+    state.set_history([Window(s, open=None, close=None, error=NO_MARKET, length=DAILY.length(s)) for s in DAILY.past_starts(now)[:27]]
+                      + [Window(s, open=1.0, close=2.0, length=DAILY.length(s)) for s in DAILY.past_starts(now)[27:]], now)
+    assert "daily markets start Oct 4: earlier days show none" in status_text(state, now, "live")

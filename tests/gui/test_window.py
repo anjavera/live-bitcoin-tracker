@@ -89,8 +89,8 @@ def test_window_shows_live_data(make):
     assert pump(lambda: window.table.model().rowCount() == 97
                 and {"$84,044.04", "92%"} <= set(labels(window)))  # price and odds arrive separately
     shown = labels(window)
-    assert "$84,000.00" in shown and "BTC UP OR DOWN 15M" in shown
-    assert window.windowTitle() == "BTC 15m Tracker"
+    assert "$84,000.00" in shown and "BTC UP OR DOWN · 15 MIN" in shown
+    assert window.windowTitle() == "Live Bitcoin Tracker"
     assert window.minimumWidth() >= 760 and window.minimumHeight() >= 640
     assert pump(lambda: not window.chart.empty)
     assert "feed: live" in window.status.text()
@@ -205,3 +205,84 @@ def test_snapshot_unwritable_path_returns_error(qapp, tmp_path, monkeypatch, cap
     monkeypatch.setattr(gui_main, "_clock_override", clock)
     assert gui_main.main(["--snapshot", str(tmp_path / "missing" / "dir" / "shot.png")]) == 1
     assert "could not save" in capsys.readouterr().err.lower()
+
+
+# ---- time-frame tabs ----------------------------------------------------------------------------------
+from live_bitcoin_tracker.timeframes import DAILY, FIFTEEN_MIN, HOURLY  # noqa: E402
+
+
+def frame_sources(clock):
+    base = sources(clock)
+    base.load_frame_history = lambda tf, now: [
+        Window(s, open=84000.0, close=None if s == tf.floor(now) else 84010.0, length=tf.length(s))
+        for s in [*tf.past_starts(now), tf.floor(now)]]
+    base.frame_feed_factory = lambda tf, cb: None
+    base.fetch_frame_index_history = lambda since, bucket: [(since + i * 60, 84000.0 + i) for i in range(10)]
+    return base
+
+
+@pytest.fixture
+def make_tabs(qapp):
+    made = []
+
+    def _make():
+        clock, remembered = Clock(), []
+        controller = Controller(frame_sources(clock), clock)
+        window = MainWindow(controller, clock, on_timeframe=remembered.append)
+        window.show()
+        controller.start()
+        made.append(window)
+        return window, controller, remembered
+
+    yield _make
+    for window in made:
+        window.close()
+
+
+def test_there_is_a_tab_for_each_time_frame_and_15_minutes_is_selected(make_tabs):
+    window, controller, _ = make_tabs()
+    assert [b.text() for b in window.tab_buttons.values()] == ["15 min", "Hourly", "Daily"]
+    assert window.tab_buttons["15m"].isChecked() and window.heading.text() == "Past 24 h"
+    assert controller.timeframe is FIFTEEN_MIN
+
+
+def test_clicking_hourly_switches_everything_and_reports_the_choice(make_tabs):
+    window, controller, remembered = make_tabs()
+    window.tab_buttons["1h"].click()
+    assert controller.timeframe is HOURLY and remembered == [HOURLY]
+    assert window.heading.text() == "Past 24 hours" and window.tab_buttons["1h"].isChecked()
+    assert pump(lambda: window.table.model().rowCount() == 25)  # 24 past hours + the live one
+    assert "BTC UP OR DOWN · HOURLY" in labels(window)
+    assert window.legend.band_labels[0].text() == "20" and window.legend.band_labels[8].text() == "2000+"
+    assert pump(lambda: not window.chart.empty) and window.chart.seconds == 3600 and window.chart.label_every == 600
+
+
+def test_daily_tab_shows_thirty_days_a_long_countdown_and_the_day_long_chart(make_tabs):
+    window, controller, remembered = make_tabs()
+    window.tab_buttons["1d"].click()
+    assert window.heading.text() == "Past 30 days"
+    assert pump(lambda: window.table.model().rowCount() == 31)
+    countdown = [t for t in labels(window) if t.count(":") == 2]
+    assert countdown and int(countdown[0].split(":")[0]) <= 24  # h:mm:ss to the 5 PM ET close
+    assert window.chart.seconds == controller.chart_seconds and window.chart.seconds >= 23 * 3600
+    assert window.legend.band_labels[0].text() == "100"
+
+
+def test_number_keys_are_wired_to_the_three_frames(make_tabs):
+    window, controller, _ = make_tabs()
+    by_key = {a.shortcut().toString(): a for a in window.actions() if a.shortcut().toString() in ("1", "2", "3")}
+    assert set(by_key) == {"1", "2", "3"}
+    by_key["3"].trigger()
+    assert controller.timeframe is DAILY
+    by_key["2"].trigger()
+    assert controller.timeframe is HOURLY
+    by_key["1"].trigger()
+    assert controller.timeframe is FIFTEEN_MIN
+
+
+def test_the_strip_shows_one_cell_per_past_window_of_the_active_frame(make_tabs):
+    window, controller, _ = make_tabs()
+    window.tab_buttons["1h"].click()
+    assert pump(lambda: len(window.strip.cells) == 24)
+    window.tab_buttons["1d"].click()
+    assert pump(lambda: len(window.strip.cells) == 30)

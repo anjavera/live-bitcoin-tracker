@@ -50,10 +50,11 @@ def display_problem(platform: str, env, find_library=None, load=None) -> str | N
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="bitcoin-tracker", description="Live BTC 15-minute Up/Down desktop window")
+    parser = argparse.ArgumentParser(prog="bitcoin-tracker", description="Live Bitcoin Tracker: BTC Up/Down 15-minute, hourly and daily markets")
     parser.add_argument("--version", action="version", version=f"bitcoin-tracker {_version()}")
     parser.add_argument("--keyless", action="store_true", help="ignore any API keys and use public data only")
     parser.add_argument("--snapshot", metavar="PNG", help="save one picture of the window to PNG and exit")
+    parser.add_argument("--timeframe", choices=["15m", "1h", "1d"], help="start on this time frame (default: the one used last time)")
     return parser
 
 
@@ -82,6 +83,28 @@ def _snapshot(app, window, controller, clock, path: str) -> int:
     return 0
 
 
+SETTINGS_ORG = SETTINGS_APP = "LiveBitcoinTracker"
+
+
+def _saved_timeframe() -> str:
+    """The time frame used last time; '15m' when nothing is saved or the settings cannot be read."""
+    try:
+        from PySide6.QtCore import QSettings
+
+        return str(QSettings(SETTINGS_ORG, SETTINGS_APP).value("timeframe", "15m"))
+    except Exception:
+        return "15m"
+
+
+def _remember_timeframe(timeframe) -> None:
+    try:
+        from PySide6.QtCore import QSettings
+
+        QSettings(SETTINGS_ORG, SETTINGS_APP).setValue("timeframe", timeframe.key)
+    except Exception:
+        pass  # a convenience only: never let it break the window
+
+
 def run(args: argparse.Namespace) -> int:
     from PySide6.QtGui import QFontDatabase
     from PySide6.QtWidgets import QApplication
@@ -95,8 +118,12 @@ def run(args: argparse.Namespace) -> int:
     headline, body = theme.pick_fonts(QFontDatabase.families())
     app.setStyleSheet(theme.stylesheet(headline, body))
     clock = _clock_override or utcnow
-    controller = Controller(_sources_override, clock, use_keys=not args.keyless)
-    window = MainWindow(controller, clock)
+    from live_bitcoin_tracker.timeframes import by_key
+
+    explicit = args.timeframe is not None
+    timeframe = by_key(args.timeframe if explicit else _saved_timeframe())
+    controller = Controller(_sources_override, clock, use_keys=not args.keyless, timeframe=timeframe)
+    window = MainWindow(controller, clock, on_timeframe=None if args.snapshot else _remember_timeframe)
     if args.snapshot:
         return _snapshot(app, window, controller, clock, args.snapshot)
     window.show()

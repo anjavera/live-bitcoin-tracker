@@ -118,7 +118,7 @@ def test_header_card_shows_texts(qapp):
     card = HeaderCard()
     card.set_vm(header_vm())
     shown = texts(card)
-    for expected in ("$84,489.89", "$84,445.85", "+$44.04", "04:12", "Polymarket index", "BTC UP OR DOWN 15M"):
+    for expected in ("$84,489.89", "$84,445.85", "+$44.04", "04:12", "Polymarket index", "BTC UP OR DOWN · 15 MIN"):
         assert expected in shown
 
 
@@ -167,3 +167,20 @@ def test_odds_card_stale_and_market_state_pill(qapp):
     assert "stale" in shown and "halted" in shown
     card.set_vm(odds_vm())
     assert card.state_pill.isHidden()
+
+
+def test_chart_time_labels_follow_the_window_length():
+    from datetime import datetime, timezone
+
+    from live_bitcoin_tracker.gui.widgets.chart import time_labels, map_point
+    from live_bitcoin_tracker.gui.series import ChartPoint
+
+    start = datetime(2026, 10, 8, 5, 0, tzinfo=timezone.utc)  # 1:00 AM ET
+    assert time_labels(start, False)[:2] == [(0, "1:00am"), (120, "1:02am")]
+    hourly = time_labels(start, False, 3600, 600)
+    assert len(hourly) == 6 and hourly[1] == (600, "1:10am")
+    day = datetime(2026, 10, 7, 21, 0, tzinfo=timezone.utc)  # 5 PM ET
+    daily = time_labels(day, False, 86400, 4 * 3600)
+    assert [label for _, label in daily] == ["5pm", "9pm", "1am", "5am", "9am", "1pm"]
+    p = ChartPoint(int(start.timestamp()) + 1800, 100.0)
+    assert map_point(p, start, 100, 50, 90, 110, seconds=3600)[0] == 50

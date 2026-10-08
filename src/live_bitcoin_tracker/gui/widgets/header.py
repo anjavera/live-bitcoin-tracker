@@ -48,6 +48,7 @@ class HeaderCard(QFrame):
         outer.addLayout(right)
 
     def set_vm(self, vm: HeaderVM) -> None:
+        self.title.setText(vm.title)
         self.price_label.setText(f"≈ {vm.price_text}" if vm.approx and vm.source else vm.price_text)
         self.beat_label.setText(vm.beat_text)
         self.gap_label.setText(vm.gap_text if vm.gap_text != "—" else "—")

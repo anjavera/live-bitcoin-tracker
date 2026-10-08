@@ -197,3 +197,15 @@ def test_model_identical_rows_do_not_reset_the_view(qapp):
     assert len(resets) == 1
     model.set_rows(rows(84099.0))
     assert len(resets) == 2
+
+
+def test_strip_lays_out_24_hourly_cells_in_one_row_and_30_daily_cells_in_two(qapp):
+    from live_bitcoin_tracker.gui.widgets.strip import per_row
+
+    assert (per_row(96), per_row(24), per_row(30)) == (24, 24, 15)
+    strip = StripWidget()
+    strip.resize(900, 300)
+    strip.set_rows(rows()[:25], 24)
+    assert len(strip.cells) == 24 and strip.cell_rect(23).top() == strip.cell_rect(0).top()
+    strip.set_rows(rows()[:31], 30)
+    assert len(strip.cells) == 30 and strip.cell_rect(15).top() > strip.cell_rect(0).top() and strip.cell_rect(14).top() == strip.cell_rect(0).top()

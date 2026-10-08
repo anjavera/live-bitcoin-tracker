@@ -1,4 +1,4 @@
-"""The 96-window strip: one small cell per window, left half = result colour, right half = net-change colour."""
+"""The strip: one small cell per past window (96, 24 or 30), left half = result colour, right half = net-change colour."""
 
 from dataclasses import dataclass
 
@@ -9,9 +9,13 @@ from PySide6.QtWidgets import QToolTip, QWidget
 from live_bitcoin_tracker.gui import theme
 from live_bitcoin_tracker.gui.viewmodel import RowVM
 
-PER_ROW = 24
 CELLS = 96
 GAP = 3
+
+
+def per_row(count: int) -> int:
+    """Cells per row: 96 -> 4 rows of 24, 24 -> one row, 30 -> two rows of 15."""
+    return count if count <= 24 else 24 if count % 24 == 0 else 15
 
 
 @dataclass(frozen=True)
@@ -25,19 +29,23 @@ class StripWidget(QWidget):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.cells: list[StripCell] = []
+        self.count = CELLS
         self.setMouseTracking(True)
         self.setMinimumHeight(120)
 
-    def set_rows(self, rows: list[RowVM]) -> None:
+    def set_rows(self, rows: list[RowVM], count: int = CELLS) -> None:
+        """One cell for each of the first `count` rows (the live row is not part of the strip)."""
+        self.count = count
         self.cells = [StripCell(QColor(r.result_fill) if r.result_fill else None,
                                 QColor(r.chg_fill) if r.chg_fill else None,
-                                f"{r.label}  {r.chg_text}") for r in rows[:CELLS]]
+                                f"{r.label}  {r.chg_text}") for r in rows[:count]]
         self.update()
 
     def cell_rect(self, i: int) -> QRect:
-        rows = -(-CELLS // PER_ROW)
-        size = max(6, min((self.width() - GAP) // PER_ROW, (self.height() - GAP) // rows)) - GAP
-        return QRect(GAP + (i % PER_ROW) * (size + GAP), GAP + (i // PER_ROW) * (size + GAP), size, size)
+        across = per_row(self.count)
+        rows = -(-self.count // across)
+        size = max(6, min((self.width() - GAP) // across, (self.height() - GAP) // rows)) - GAP
+        return QRect(GAP + (i % across) * (size + GAP), GAP + (i // across) * (size + GAP), size, size)
 
     def tooltip_at(self, point: QPoint) -> str | None:
         for i, cell in enumerate(self.cells):

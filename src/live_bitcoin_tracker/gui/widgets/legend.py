@@ -5,7 +5,8 @@ from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel
 
 from live_bitcoin_tracker import colors
 from live_bitcoin_tracker.gui import theme
-from live_bitcoin_tracker.gui.viewmodel import LEGEND_BANDS
+from live_bitcoin_tracker.gui.viewmodel import LEGEND_BANDS, legend_bands
+from live_bitcoin_tracker.timeframes import Timeframe
 
 
 def _mid(i: int) -> float:
@@ -18,6 +19,7 @@ class LegendBar(QFrame):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.swatches: dict[str, list[QColor]] = {"blue": [], "orange": []}
+        self.band_labels: list[QLabel] = []
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._tag("Result:"))
@@ -29,8 +31,16 @@ class LegendBar(QFrame):
             for i, band in enumerate(LEGEND_BANDS):
                 fill = colors.net_color(sign * _mid(i), "dark")
                 self.swatches[name].append(QColor(fill))
-                layout.addWidget(self._chip(band, fill))
+                chip = self._chip(band, fill)
+                self.band_labels.append(chip)
+                layout.addWidget(chip)
         layout.addStretch(1)
+
+    def set_timeframe(self, timeframe: Timeframe) -> None:
+        """Relabel the change bands in dollars for this frame (the colours stay: they are shades, not amounts)."""
+        labels = legend_bands(timeframe)
+        for i, chip in enumerate(self.band_labels):
+            chip.setText(labels[i % len(labels)])
 
     @staticmethod
     def _tag(text: str) -> QLabel:

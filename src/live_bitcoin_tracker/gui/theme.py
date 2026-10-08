@@ -50,6 +50,9 @@ QLabel#big {{ {head_rule} font-size: 24px; font-weight: 700; }}
 QLabel#title {{ {head_rule} font-size: 32px; font-weight: 700; }}
 QPushButton#pill {{ background: {CARD}; border: none; border-radius: 999px; padding: 6px 16px; }}
 QPushButton#pill:checked {{ background: {TEXT}; color: {PAGE}; }}
+QPushButton#tab {{ background: transparent; color: {MUTED}; border: none; border-bottom: 2px solid transparent; padding: 6px 14px; font-weight: 600; }}
+QPushButton#tab:hover {{ color: {TEXT}; }}
+QPushButton#tab:checked {{ color: {TEXT}; border-bottom: 2px solid {BTC_ORANGE}; }}
 QTableView {{ background: {CARD}; gridline-color: {PAGE}; border: none; }}
 QHeaderView::section {{ background: {CARD}; color: {MUTED}; border: none; padding: 4px; }}
 """

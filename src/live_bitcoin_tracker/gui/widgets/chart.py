@@ -1,4 +1,4 @@
-"""Live price chart for the current 15-minute window, drawn with QPainter (no QtCharts dependency)."""
+"""Live price chart for the current window (15 min, hour or day), drawn with QPainter (no QtCharts dependency)."""
 
 from datetime import datetime, timedelta
 
@@ -8,27 +8,29 @@ from PySide6.QtWidgets import QWidget
 
 from live_bitcoin_tracker.gui import theme
 from live_bitcoin_tracker.gui.series import WINDOW_SECONDS, ChartPoint, y_range
-from live_bitcoin_tracker.render import ET
+from live_bitcoin_tracker.timeframes import ET
 
 LABEL_EVERY = 120  # seconds between time labels
 MARGIN_LEFT, MARGIN_RIGHT, MARGIN_TOP, MARGIN_BOTTOM = 64, 16, 12, 26
 GRID_LINES = 4
 
 
-def map_point(p: ChartPoint, start: datetime, width: float, height: float, lo: float, hi: float) -> tuple[float, float]:
+def map_point(p: ChartPoint, start: datetime, width: float, height: float, lo: float, hi: float,
+              seconds: int = WINDOW_SECONDS) -> tuple[float, float]:
     """Pixel position of a point inside a plot area `width` x `height` (y grows downward, `hi` at the top)."""
-    x = (p.t - start.timestamp()) / WINDOW_SECONDS * width
+    x = (p.t - start.timestamp()) / seconds * width
     y = height / 2 if hi == lo else (hi - p.price) / (hi - lo) * height
     return x, y
 
 
-def time_labels(start: datetime, local_time: bool) -> list[tuple[int, str]]:
-    """(seconds from window start, label) every two minutes, e.g. (120, '5:02pm')."""
+def time_labels(start: datetime, local_time: bool, seconds: int = WINDOW_SECONDS, every: int = LABEL_EVERY) -> list[tuple[int, str]]:
+    """(seconds from window start, label) every `every` seconds, e.g. (120, '5:02pm'); whole hours read '5pm'."""
     out = []
-    for offset in range(0, WINDOW_SECONDS, LABEL_EVERY):
+    for offset in range(0, seconds, every):
         t = start + timedelta(seconds=offset)
         t = t.astimezone() if local_time else t.astimezone(ET)
-        out.append((offset, f"{t.hour % 12 or 12}:{t.minute:02d}{'am' if t.hour < 12 else 'pm'}"))
+        clock = f"{t.hour % 12 or 12}{'am' if t.hour < 12 else 'pm'}" if every >= 3600 else f"{t.hour % 12 or 12}:{t.minute:02d}{'am' if t.hour < 12 else 'pm'}"
+        out.append((offset, clock))
     return out
 
 
@@ -40,6 +42,7 @@ class PriceChart(QWidget):
         self.beat: float | None = None
         self.caption = ""
         self.local_time = False
+        self.seconds, self.label_every = WINDOW_SECONDS, LABEL_EVERY
         self.y_bounds: tuple[float, float] = (0.0, 1.0)
         self.setMinimumHeight(200)
 
@@ -48,8 +51,9 @@ class PriceChart(QWidget):
         return not self.points
 
     def set_data(self, points: list[ChartPoint], start: datetime, beat: float | None, caption: str,
-                 local_time: bool = False) -> None:
+                 local_time: bool = False, seconds: int = WINDOW_SECONDS, label_every: int = LABEL_EVERY) -> None:
         self.points, self.start, self.beat, self.caption, self.local_time = points, start, beat, caption, local_time
+        self.seconds, self.label_every = seconds, label_every
         self.y_bounds = y_range(points, beat)
         self.update()
 
@@ -75,16 +79,16 @@ class PriceChart(QWidget):
             painter.setPen(muted)
             painter.drawText(QRectF(0, y - 9, MARGIN_LEFT - 8, 18), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                              f"${hi - (hi - lo) * i / GRID_LINES:,.0f}")
-        for offset, label in time_labels(self.start, self.local_time):
-            x = area.left() + offset / WINDOW_SECONDS * area.width()
+        for offset, label in time_labels(self.start, self.local_time, self.seconds, self.label_every):
+            x = area.left() + offset / self.seconds * area.width()
             painter.drawText(QRectF(x - 30, area.bottom() + 6, 60, 16), Qt.AlignmentFlag.AlignCenter, label)
 
         def at(p: ChartPoint) -> QPointF:
-            x, y = map_point(p, self.start, area.width(), area.height(), lo, hi)
+            x, y = map_point(p, self.start, area.width(), area.height(), lo, hi, self.seconds)
             return QPointF(area.left() + x, area.top() + y)
 
         if self.beat is not None:  # the price to beat: dashed line across the window
-            _, by = map_point(ChartPoint(int(self.start.timestamp()), self.beat), self.start, area.width(), area.height(), lo, hi)
+            _, by = map_point(ChartPoint(int(self.start.timestamp()), self.beat), self.start, area.width(), area.height(), lo, hi, self.seconds)
             painter.setPen(QPen(QColor(theme.TEXT), 1.2, Qt.PenStyle.DashLine))
             painter.drawLine(QPointF(area.left(), area.top() + by), QPointF(area.right(), area.top() + by))
         path = QPainterPath()

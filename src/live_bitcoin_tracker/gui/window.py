@@ -1,4 +1,4 @@
-"""The main window: header, live chart, odds, 24-hour history, colour key and status line."""
+"""The main window: time-frame tabs, header, live chart, odds, history, colour key and status line."""
 
 from collections.abc import Callable
 from datetime import datetime
@@ -17,9 +17,9 @@ from live_bitcoin_tracker.gui.widgets.legend import LegendBar
 from live_bitcoin_tracker.gui.widgets.odds import OddsCard
 from live_bitcoin_tracker.gui.widgets.statusbar import StatusBar
 from live_bitcoin_tracker.gui.widgets.strip import StripWidget
-from live_bitcoin_tracker.windows import floor_window
+from live_bitcoin_tracker.timeframes import TIMEFRAMES, Timeframe
 
-TITLE = "BTC 15m Tracker"
+TITLE = "Live Bitcoin Tracker"
 MIN_WIDTH, MIN_HEIGHT = 760, 640
 
 
@@ -29,9 +29,10 @@ def is_wayland() -> bool:
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, controller: Controller, clock: Callable[[], datetime] = utcnow) -> None:
+    def __init__(self, controller: Controller, clock: Callable[[], datetime] = utcnow,
+                 on_timeframe: Callable[[Timeframe], None] | None = None) -> None:
         super().__init__()
-        self.controller, self._clock = controller, clock
+        self.controller, self._clock, self._on_timeframe = controller, clock, on_timeframe
         self.view, self.local_time = "table", False
         self.setWindowTitle(TITLE)
         self.setMinimumSize(MIN_WIDTH, MIN_HEIGHT)
@@ -43,6 +44,20 @@ class MainWindow(QMainWindow):
         chart_card.setObjectName("card")
         QVBoxLayout(chart_card).addWidget(self.chart)
 
+        self.tab_buttons: dict[str, QPushButton] = {}
+        tabs = QHBoxLayout()
+        tab_group = QButtonGroup(self)
+        for tf in TIMEFRAMES:
+            button = QPushButton(tf.label)
+            button.setObjectName("tab")
+            button.setCheckable(True)
+            button.setChecked(tf is controller.timeframe)
+            button.clicked.connect(lambda _checked=False, frame=tf: self.set_timeframe(frame))
+            tab_group.addButton(button)
+            self.tab_buttons[tf.key] = button
+            tabs.addWidget(button)
+        tabs.addStretch(1)
+
         self.table_button, self.strip_button = QPushButton("Table"), QPushButton("Strip")
         group = QButtonGroup(self)
         for button in (self.table_button, self.strip_button):
@@ -53,9 +68,9 @@ class MainWindow(QMainWindow):
         self.table_button.clicked.connect(lambda: self.set_view("table"))
         self.strip_button.clicked.connect(lambda: self.set_view("strip"))
         section = QHBoxLayout()
-        heading = QLabel("Past 24 h")
-        heading.setObjectName("big")
-        section.addWidget(heading)
+        self.heading = QLabel(controller.timeframe.heading)
+        self.heading.setObjectName("big")
+        section.addWidget(self.heading)
         section.addStretch(1)
         section.addWidget(self.table_button)
         section.addWidget(self.strip_button)
@@ -65,6 +80,7 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(page)
         layout.setContentsMargins(20, 16, 20, 12)
         layout.setSpacing(12)
+        layout.addLayout(tabs)
         layout.addWidget(self.header)
         layout.addWidget(chart_card, 2)
         layout.addWidget(self.odds)
@@ -76,6 +92,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(page)
         self.strip.hide()
 
+        self.legend.set_timeframe(controller.timeframe)
         self._build_actions()
         controller.updated.connect(self.refresh_view)
         self._timer = QTimer(self)
@@ -103,12 +120,24 @@ class MainWindow(QMainWindow):
             hint = "Controlled by desktop on Wayland (use Alt+Space or title bar)"
             self.top_action.setToolTip(hint)
             self.top_action.setStatusTip(hint)
+        frames = [self._action(f"{tf.label} tracker", str(i + 1), lambda _checked=False, frame=tf: self.set_timeframe(frame))
+                  for i, tf in enumerate(TIMEFRAMES)]
         self.menuBar().addMenu("&File").addAction(quit_action)
         view = self.menuBar().addMenu("&View")
-        for action in (toggle, refresh, self.local_action, self.top_action):
+        for action in (*frames, toggle, refresh, self.local_action, self.top_action):
             view.addAction(action)
 
     # ---- actions ----------------------------------------------------------------------------
+    def set_timeframe(self, timeframe: Timeframe) -> None:
+        """Show another time frame: the tab, heading, colour key, chart, odds and table all follow."""
+        self.controller.set_timeframe(timeframe)
+        self.tab_buttons[timeframe.key].setChecked(True)
+        self.heading.setText(timeframe.heading)
+        self.legend.set_timeframe(timeframe)
+        if self._on_timeframe is not None:
+            self._on_timeframe(timeframe)
+        self.refresh_view()
+
     def set_view(self, view: str) -> None:
         self.view = view
         self.table.setVisible(view == "table")
@@ -152,11 +181,13 @@ class MainWindow(QMainWindow):
         head = header_vm(state, now)
         self.header.set_vm(head)
         self.odds.set_vm(odds_vm(state, now))
-        start = self.controller.chart_start or floor_window(now)
-        self.chart.set_data(self.controller.chart_points, start, state.live_window(now).open, head.caption, self.local_time)
+        tf = self.controller.timeframe
+        start = self.controller.chart_start or tf.floor(now)
+        self.chart.set_data(self.controller.chart_points, start, state.live_window(now).open, head.caption, self.local_time,
+                            self.controller.chart_seconds, tf.chart_label_every)
         rows = table_rows(state, now, local_time=self.local_time)
         self.table.set_rows(rows)
-        self.strip.set_rows(rows)
+        self.strip.set_rows(rows, tf.count)
         self.status.set_text(status_text(state, now, self.controller.feed_status(now)))
 
     def closeEvent(self, event: QCloseEvent) -> None:
