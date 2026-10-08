@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from btc15_widget.calibration import Calibration, fetch_candles, measure
-from btc15_widget.model import Window
+from live_bitcoin_tracker.calibration import Calibration, fetch_candles, measure
+from live_bitcoin_tracker.model import Window
 
 T1 = datetime(2026, 9, 30, 9, 0, tzinfo=timezone.utc)
 T2 = datetime(2026, 9, 30, 9, 15, tzinfo=timezone.utc)

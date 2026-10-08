@@ -3,8 +3,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from btc15_widget.model import Window
-from btc15_widget.proxy import composite, http_get_json
+from live_bitcoin_tracker.model import Window
+from live_bitcoin_tracker.proxy import composite, http_get_json
 
 
 @dataclass(frozen=True)

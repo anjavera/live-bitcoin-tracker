@@ -3,11 +3,11 @@
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from btc15_widget.calibration import Calibration
-from btc15_widget.history import NO_MARKET
-from btc15_widget.model import LiveTick, Window
-from btc15_widget.proxy import apply_bias, composite
-from btc15_widget.windows import MARKET_SLUG, floor_window
+from live_bitcoin_tracker.calibration import Calibration
+from live_bitcoin_tracker.history import NO_MARKET
+from live_bitcoin_tracker.model import LiveTick, Window
+from live_bitcoin_tracker.proxy import apply_bias, composite
+from live_bitcoin_tracker.windows import MARKET_SLUG, floor_window
 
 STALE_SECONDS = 10
 STRIP_WINDOWS = 96

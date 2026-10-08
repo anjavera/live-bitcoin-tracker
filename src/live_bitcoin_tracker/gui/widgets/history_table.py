@@ -4,9 +4,9 @@ from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 from PySide6.QtGui import QColor, QFont
 from PySide6.QtWidgets import QAbstractItemView, QHeaderView, QTableView
 
-from btc15_widget import colors
-from btc15_widget.gui import theme
-from btc15_widget.gui.viewmodel import RowVM, window_column_title
+from live_bitcoin_tracker import colors
+from live_bitcoin_tracker.gui import theme
+from live_bitcoin_tracker.gui.viewmodel import RowVM, window_column_title
 
 COLUMNS = ["Window (ET)", "Open", "Close", "Chg $", "Chg %", "Result"]
 ALIGN_CENTER = Qt.AlignmentFlag.AlignCenter

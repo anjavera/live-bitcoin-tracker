@@ -1,6 +1,6 @@
 import pytest
 
-from btc15_widget import client
+from live_bitcoin_tracker import client
 
 
 def test_missing_credentials_raise_one_clear_error(monkeypatch):

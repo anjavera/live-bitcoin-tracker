@@ -9,7 +9,7 @@ import math
 from rich.style import Style
 from rich.text import Text
 
-from btc15_widget.colors import result_color
+from live_bitcoin_tracker.colors import result_color
 
 WINDOW_SECONDS = 900.0
 TAU = 2 * math.pi

@@ -3,9 +3,9 @@
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel
 
-from btc15_widget import colors
-from btc15_widget.gui import theme
-from btc15_widget.gui.viewmodel import LEGEND_BANDS
+from live_bitcoin_tracker import colors
+from live_bitcoin_tracker.gui import theme
+from live_bitcoin_tracker.gui.viewmodel import LEGEND_BANDS
 
 
 def _mid(i: int) -> float:

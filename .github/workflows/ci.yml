@@ -24,5 +24,5 @@ jobs:
       - run: uv run pytest -q
         env:
           QT_QPA_PLATFORM: offscreen
-      - run: uv run btc15-widget --version
-      - run: uv run btc15-gui --version
+      - run: uv run bitcoin-tracker-tui --version
+      - run: uv run bitcoin-tracker --version

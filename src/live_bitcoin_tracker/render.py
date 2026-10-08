@@ -11,11 +11,11 @@ from rich.style import Style
 from rich.table import Table
 from rich.text import Text
 
-from btc15_widget.colors import BAND_EDGES, net_color, result_color, text_on
-from btc15_widget.history import NO_MARKET
-from btc15_widget.model import Window
-from btc15_widget.state import WidgetState
-from btc15_widget.windows import seconds_remaining
+from live_bitcoin_tracker.colors import BAND_EDGES, net_color, result_color, text_on
+from live_bitcoin_tracker.history import NO_MARKET
+from live_bitcoin_tracker.model import Window
+from live_bitcoin_tracker.state import WidgetState
+from live_bitcoin_tracker.windows import seconds_remaining
 
 ET = ZoneInfo("America/New_York")
 CELLS_PER_ROW = 24

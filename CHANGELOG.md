@@ -6,9 +6,9 @@ the project uses [semantic versioning](https://semver.org/).
 ## [Unreleased] - first public release (0.1.0)
 
 ### Added
-- Live terminal widget (`btc15-widget`): ticker with price, price to beat, gap, countdown and Up/Down odds;
+- Live terminal widget (`bitcoin-tracker-tui`): ticker with price, price to beat, gap, countdown and Up/Down odds;
   24-hour colour-coded history table; strip view; colour key; ASCII coin whose ring is the analog countdown.
-- Desktop window (`btc15-gui`, PySide6): live price chart for the current window, odds, 24-hour history table,
+- Desktop window (`bitcoin-tracker`, PySide6): live price chart for the current window, odds, 24-hour history table,
   local-time and always-on-top options, `--snapshot` image export.
 - `pm` command line: `btc15`, `search`, `price`, `book`, `market`, `event`, and (with keys) `account`,
   `balances`, `positions`, `orders`. `--json` output.

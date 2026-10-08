@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from btc15_widget.gui.series import ChartPoint, append_point, window_points, y_range
+from live_bitcoin_tracker.gui.series import ChartPoint, append_point, window_points, y_range
 
 START = datetime(2026, 10, 2, 21, 0, tzinfo=timezone.utc)
 T0 = int(START.timestamp())

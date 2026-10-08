@@ -1,6 +1,6 @@
 # Third-party notices
 
-The desktop window (`btc15-gui`) uses **Qt for Python (PySide6)**, which is licensed under the GNU LGPL v3
+The desktop window (`bitcoin-tracker`) uses **Qt for Python (PySide6)**, which is licensed under the GNU LGPL v3
 (<https://doc.qt.io/qtforpython-6/licenses.html>). The standalone GUI builds package the unmodified Qt libraries
 inside a single PyInstaller file (they are unpacked to a temporary folder when the app starts). Whether that
 packaging fully satisfies the LGPL's "replace the library" terms has not been reviewed by a lawyer; the source of this

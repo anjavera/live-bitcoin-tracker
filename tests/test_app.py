@@ -4,12 +4,12 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from btc15_widget import app as app_module
-from btc15_widget.app import WidgetApp, snapshot_text
-from btc15_widget.model import LiveTick, Window
-from btc15_widget.sources import DataSources
-from btc15_widget.state import WidgetState
-from btc15_widget.windows import MARKET_SLUG, floor_window
+from live_bitcoin_tracker import app as app_module
+from live_bitcoin_tracker.app import WidgetApp, snapshot_text
+from live_bitcoin_tracker.model import LiveTick, Window
+from live_bitcoin_tracker.sources import DataSources
+from live_bitcoin_tracker.state import WidgetState
+from live_bitcoin_tracker.windows import MARKET_SLUG, floor_window
 
 import re
 
@@ -253,7 +253,7 @@ class DownClient:
 
 
 def test_history_outage_shows_error_and_backs_off(tmp_path):
-    from btc15_widget.history import load_history
+    from live_bitcoin_tracker.history import load_history
 
     down = DownClient()
 
@@ -428,7 +428,7 @@ def test_status_line_says_whether_keys_are_in_use(tmp_path):
 
 
 def test_status_says_when_polymarket_has_no_live_market(tmp_path):
-    from btc15_widget.history import NO_MARKET
+    from live_bitcoin_tracker.history import NO_MARKET
 
     def no_live_market(now):
         ws = history()

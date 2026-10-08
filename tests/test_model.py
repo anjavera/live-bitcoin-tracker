@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from btc15_widget.model import LiveTick, Window
+from live_bitcoin_tracker.model import LiveTick, Window
 
 T0 = datetime(2026, 9, 30, 9, 0, tzinfo=timezone.utc)
 

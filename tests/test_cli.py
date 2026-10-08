@@ -4,9 +4,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from btc15_widget import cli
-from btc15_widget.colors import net_color, result_color
-from btc15_widget.model import Window
+from live_bitcoin_tracker import cli
+from live_bitcoin_tracker.colors import net_color, result_color
+from live_bitcoin_tracker.model import Window
 
 T = datetime(2026, 9, 30, 9, 0, tzinfo=timezone.utc)
 
@@ -115,7 +115,7 @@ class FakeApi:
 
 
 def test_btc15_and_market_commands_use_the_keyless_client(monkeypatch, capsys):
-    import btc15_widget.cli as cli_module
+    import live_bitcoin_tracker.cli as cli_module
 
     api = FakeApi()
     monkeypatch.setattr(cli_module, "get_client", lambda: (_ for _ in ()).throw(AssertionError("must not need keys")))
@@ -126,7 +126,7 @@ def test_btc15_and_market_commands_use_the_keyless_client(monkeypatch, capsys):
 
 
 def test_account_commands_still_need_keys_and_say_so(monkeypatch, capsys):
-    import btc15_widget.cli as cli_module
+    import live_bitcoin_tracker.cli as cli_module
 
     def no_keys():
         raise RuntimeError("Missing POLYMARKET_KEY_ID / POLYMARKET_SECRET_KEY")
@@ -139,7 +139,7 @@ def test_account_commands_still_need_keys_and_say_so(monkeypatch, capsys):
 
 
 def test_volume_is_opt_in_for_btc15(monkeypatch):
-    import btc15_widget.cli as cli_module
+    import live_bitcoin_tracker.cli as cli_module
 
     seen = {}
     monkeypatch.setattr(cli_module, "get_public_client", lambda: FakeApi())
@@ -153,7 +153,7 @@ def test_volume_is_opt_in_for_btc15(monkeypatch):
 def test_volume_column_is_hidden_when_nobody_fetched_volume(capsys):
     no_volume = [Window(T, open=100.0, close=110.0, status="RESOLVED")]
     from rich.console import Console as RichConsole
-    import btc15_widget.render as render_module
+    import live_bitcoin_tracker.render as render_module
 
     wide = RichConsole(width=200, record=True, file=io.StringIO())
     render_module.Console = lambda: wide  # print_table builds its own Console; give it a wide one

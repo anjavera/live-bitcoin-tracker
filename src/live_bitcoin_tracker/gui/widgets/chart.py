@@ -6,9 +6,9 @@ from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QWidget
 
-from btc15_widget.gui import theme
-from btc15_widget.gui.series import WINDOW_SECONDS, ChartPoint, y_range
-from btc15_widget.render import ET
+from live_bitcoin_tracker.gui import theme
+from live_bitcoin_tracker.gui.series import WINDOW_SECONDS, ChartPoint, y_range
+from live_bitcoin_tracker.render import ET
 
 LABEL_EVERY = 120  # seconds between time labels
 MARGIN_LEFT, MARGIN_RIGHT, MARGIN_TOP, MARGIN_BOTTOM = 64, 16, 12, 26

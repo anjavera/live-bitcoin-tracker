@@ -3,11 +3,11 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from btc15_widget import app as app_module
-from btc15_widget import cli
-from btc15_widget.model import LiveTick, Window
-from btc15_widget.sources import DataSources
-from btc15_widget.windows import MARKET_SLUG, floor_window
+from live_bitcoin_tracker import app as app_module
+from live_bitcoin_tracker import cli
+from live_bitcoin_tracker.model import LiveTick, Window
+from live_bitcoin_tracker.sources import DataSources
+from live_bitcoin_tracker.windows import MARKET_SLUG, floor_window
 
 UTC = timezone.utc
 NOW = datetime(2026, 9, 30, 9, 20, tzinfo=UTC)
@@ -105,7 +105,7 @@ def test_pm_widget_passes_keyless_through(monkeypatch):
 
 def test_snapshot_explains_a_missing_live_market_without_waiting_for_a_tick(tmp_path, capsys):
     import time
-    from btc15_widget.history import NO_MARKET
+    from live_bitcoin_tracker.history import NO_MARKET
 
     def no_live_market(now):
         ws = history()
@@ -132,4 +132,4 @@ def test_version_flag_prints_the_version_and_exits(capsys):
     with pytest.raises(SystemExit) as exit_info:
         app_module.main(["--version"])
     assert exit_info.value.code == 0
-    assert capsys.readouterr().out.strip().startswith("btc15-widget ")
+    assert capsys.readouterr().out.strip().startswith("bitcoin-tracker-tui ")

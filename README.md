@@ -18,15 +18,15 @@ window with the live widget; press **q** to quit. The window needs to be at leas
 
 | Your computer | Download | How to start it |
 |---|---|---|
-| **Windows** | `btc15-widget-windows-x86_64.exe` | Double-click it. Windows may say it "protected your PC" because the app is not code-signed: click **More info**, then **Run anyway**. |
-| **Mac** (Apple Silicon) | `btc15-widget-macos-arm64` | Open Terminal, then run `chmod +x ~/Downloads/btc15-widget-macos-arm64 && ~/Downloads/btc15-widget-macos-arm64`. If macOS blocks it, open **System Settings > Privacy & Security** and choose **Open Anyway**. |
-| **Linux** | `btc15-widget-linux-x86_64` + `install.sh` | In the download folder run `sh install.sh`. This adds **BTC 15m Widget** to your app menu (it opens in a terminal window). |
+| **Windows** | `bitcoin-tracker-tui-windows-x86_64.exe` | Double-click it. Windows may say it "protected your PC" because the app is not code-signed: click **More info**, then **Run anyway**. |
+| **Mac** (Apple Silicon) | `bitcoin-tracker-tui-macos-arm64` | Open Terminal, then run `chmod +x ~/Downloads/bitcoin-tracker-tui-macos-arm64 && ~/Downloads/bitcoin-tracker-tui-macos-arm64`. If macOS blocks it, open **System Settings > Privacy & Security** and choose **Open Anyway**. |
+| **Linux** | `bitcoin-tracker-tui-linux-x86_64` + `install.sh` | In the download folder run `sh install.sh`. This adds **BTC 15m Widget** to your app menu (it opens in a terminal window). |
 
 The apps are not code-signed (that needs paid developer accounts), which is why Windows and macOS warn once.
 If something does not work on your system, please [open an issue](../../issues) with what you saw.
 
-**Already use Python?** `uv tool install git+https://github.com/anjavera/unofficial-bitcoin-up-or-down-15-minute-widget-tracker`
-then run `btc15-widget`.
+**Already use Python?** `uv tool install git+https://github.com/anjavera/live-bitcoin-tracker`
+then run `bitcoin-tracker-tui`.
 
 ## Desktop window
 
@@ -35,13 +35,13 @@ current 15 minutes, the Up/Down odds, and the 24-hour history table. It is read-
 
 | Your computer | Download | How to start it |
 |---|---|---|
-| **Windows** | `btc15-gui-windows-x86_64.exe` | Double-click it (same one-time \"protected your PC\" warning as above: **More info**, then **Run anyway**). |
-| **Mac** (Apple Silicon) | `btc15-gui-macos-arm64.zip` | Unzip it, then right-click **btc15-gui** and choose **Open** the first time (the app is not code-signed). |
-| **Linux** | `btc15-gui-linux-x86_64` + `install-gui.sh` | In the download folder run `sh install-gui.sh`. This adds **BTC 15m Tracker** to your app menu. On an X11 desktop you may also need `sudo apt install libxcb-cursor0`; the app tells you if so. |
+| **Windows** | `bitcoin-tracker-windows-x86_64.exe` | Double-click it (same one-time \"protected your PC\" warning as above: **More info**, then **Run anyway**). |
+| **Mac** (Apple Silicon) | `bitcoin-tracker-macos-arm64.zip` | Unzip it, then right-click **bitcoin-tracker** and choose **Open** the first time (the app is not code-signed). |
+| **Linux** | `bitcoin-tracker-linux-x86_64` + `install-gui.sh` | In the download folder run `sh install-gui.sh`. This adds **BTC 15m Tracker** to your app menu. On an X11 desktop you may also need `sudo apt install libxcb-cursor0`; the app tells you if so. |
 
 Keys: **v** switches table/strip, **r** reloads, **Ctrl+Q** quits. The **View** menu has a local-time option and
-always-on-top. **Already use Python?** `uv tool install "btc15-widget[gui] @ git+https://github.com/anjavera/unofficial-bitcoin-up-or-down-15-minute-widget-tracker"`
-then run `btc15-gui` (`--keyless` ignores any API keys).
+always-on-top. **Already use Python?** `uv tool install "live-bitcoin-tracker[gui] @ git+https://github.com/anjavera/live-bitcoin-tracker"`
+then run `bitcoin-tracker` (`--keyless` ignores any API keys).
 
 The look is modelled on Polymarket's own market page (dark theme, green Up / red Down). The live price comes from
 Polymarket's own BTC index, the one the markets settle on; if that is unavailable the window falls back to an
@@ -76,7 +76,7 @@ How to get your own keys (from Polymarket US's official docs,
    ```
 
 The widget finds the keys by itself; the status line then shows `feed: live (keyed)`. To ignore your keys and use
-public data only, run `btc15-widget --keyless` (the status line shows `feed: live (keyless)`).
+public data only, run `bitcoin-tracker-tui --keyless` (the status line shows `feed: live (keyless)`).
 
 **Keep your keys safe.** Polymarket's keys can be used to place orders including other functions involving your money. Treat the keys as if they were the full details to your credit/debit cards. `.env` is git-ignored here; never commit it or paste it anywhere. If a key is ever
 exposed, revoke it at <https://polymarket.us/developer>. This project only reads data and never places orders.
@@ -85,9 +85,9 @@ exposed, revoke it at <https://polymarket.us/developer>. This project only reads
 
 ```
 uv sync
-uv run btc15-widget           # live terminal widget (add --keyless to ignore any API keys)
-uv run btc15-widget --snapshot  # print one plain-text frame and exit
-uv run btc15-gui              # desktop window (needs: uv sync --extra gui)
+uv run bitcoin-tracker-tui           # live terminal widget (add --keyless to ignore any API keys)
+uv run bitcoin-tracker-tui --snapshot  # print one plain-text frame and exit
+uv run bitcoin-tracker              # desktop window (needs: uv sync --extra gui)
 uv run pm btc15 --hours 6     # one-shot styled table, last 6 hours (add --volume for volumes; slower)
 uv run pytest                 # tests
 ```

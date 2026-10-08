@@ -8,16 +8,16 @@ from PySide6.QtGui import QAction, QCloseEvent, QGuiApplication, QKeySequence
 from PySide6.QtWidgets import (QButtonGroup, QFrame, QHBoxLayout, QLabel, QMainWindow, QPushButton, QVBoxLayout,
                                QWidget)
 
-from btc15_widget.gui.controller import Controller, utcnow
-from btc15_widget.gui.viewmodel import header_vm, odds_vm, status_text, table_rows
-from btc15_widget.gui.widgets.chart import PriceChart
-from btc15_widget.gui.widgets.header import HeaderCard
-from btc15_widget.gui.widgets.history_table import HistoryTable
-from btc15_widget.gui.widgets.legend import LegendBar
-from btc15_widget.gui.widgets.odds import OddsCard
-from btc15_widget.gui.widgets.statusbar import StatusBar
-from btc15_widget.gui.widgets.strip import StripWidget
-from btc15_widget.windows import floor_window
+from live_bitcoin_tracker.gui.controller import Controller, utcnow
+from live_bitcoin_tracker.gui.viewmodel import header_vm, odds_vm, status_text, table_rows
+from live_bitcoin_tracker.gui.widgets.chart import PriceChart
+from live_bitcoin_tracker.gui.widgets.header import HeaderCard
+from live_bitcoin_tracker.gui.widgets.history_table import HistoryTable
+from live_bitcoin_tracker.gui.widgets.legend import LegendBar
+from live_bitcoin_tracker.gui.widgets.odds import OddsCard
+from live_bitcoin_tracker.gui.widgets.statusbar import StatusBar
+from live_bitcoin_tracker.gui.widgets.strip import StripWidget
+from live_bitcoin_tracker.windows import floor_window
 
 TITLE = "BTC 15m Tracker"
 MIN_WIDTH, MIN_HEIGHT = 760, 640

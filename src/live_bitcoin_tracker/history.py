@@ -10,9 +10,9 @@ from pathlib import Path
 
 from polymarket_us.errors import NotFoundError
 
-from btc15_widget.model import Window
-from btc15_widget.paths import cache_dir
-from btc15_widget.windows import MARKET_SLUG, event_slug, floor_window
+from live_bitcoin_tracker.model import Window
+from live_bitcoin_tracker.paths import cache_dir
+from live_bitcoin_tracker.windows import MARKET_SLUG, event_slug, floor_window
 
 HISTORY_CACHE = cache_dir() / "history.json"
 PAUSE_BETWEEN_FETCHES = 0.4  # stay clear of the Cloudflare 1015 rate limit (per-window paths only)

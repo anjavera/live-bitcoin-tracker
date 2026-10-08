@@ -3,9 +3,9 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QGridLayout, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
-from btc15_widget.gui import theme
-from btc15_widget.gui.viewmodel import HeaderVM
-from btc15_widget.gui.widgets.coin import CoinWidget
+from live_bitcoin_tracker.gui import theme
+from live_bitcoin_tracker.gui.viewmodel import HeaderVM
+from live_bitcoin_tracker.gui.widgets.coin import CoinWidget
 
 
 def _label(text: str = "", name: str = "") -> QLabel:

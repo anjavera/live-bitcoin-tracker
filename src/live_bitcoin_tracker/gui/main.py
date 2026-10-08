@@ -1,4 +1,4 @@
-"""Entry point for `btc15-gui`. Qt is imported lazily so `--version` and the CLI never need PySide6."""
+"""Entry point for `bitcoin-tracker`. Qt is imported lazily so `--version` and the CLI never need PySide6."""
 
 import argparse
 import os
@@ -17,7 +17,7 @@ def _version() -> str:
     try:
         from importlib.metadata import version
 
-        return version("btc15-widget")
+        return version("live-bitcoin-tracker")
     except Exception:  # not installed as a package (e.g. some frozen builds)
         return "unknown"
 
@@ -45,13 +45,13 @@ def display_problem(platform: str, env, find_library=None, load=None) -> str | N
         from ctypes.util import find_library
     if find_library("xcb-cursor"):
         return None
-    return ("btc15-gui needs one system library on this desktop (X11) to open its window.\n"
+    return ("bitcoin-tracker needs one system library on this desktop (X11) to open its window.\n"
             "Install it with:  sudo apt install libxcb-cursor0   (Fedora: sudo dnf install xcb-util-cursor)")
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="btc15-gui", description="Live BTC 15-minute Up/Down desktop window")
-    parser.add_argument("--version", action="version", version=f"btc15-gui {_version()}")
+    parser = argparse.ArgumentParser(prog="bitcoin-tracker", description="Live BTC 15-minute Up/Down desktop window")
+    parser.add_argument("--version", action="version", version=f"bitcoin-tracker {_version()}")
     parser.add_argument("--keyless", action="store_true", help="ignore any API keys and use public data only")
     parser.add_argument("--snapshot", metavar="PNG", help="save one picture of the window to PNG and exit")
     return parser
@@ -86,9 +86,9 @@ def run(args: argparse.Namespace) -> int:
     from PySide6.QtGui import QFontDatabase
     from PySide6.QtWidgets import QApplication
 
-    from btc15_widget.gui import theme
-    from btc15_widget.gui.controller import Controller, utcnow
-    from btc15_widget.gui.window import MainWindow
+    from live_bitcoin_tracker.gui import theme
+    from live_bitcoin_tracker.gui.controller import Controller, utcnow
+    from live_bitcoin_tracker.gui.window import MainWindow
 
     app = QApplication.instance() or QApplication(sys.argv[:1])
     theme.load_bundled_fonts()
@@ -118,7 +118,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return run(args)
     except ImportError:
-        print("btc15-gui needs the GUI extra: install it with  uv sync --extra gui  (or pip install 'btc15-widget[gui]')",
+        print("bitcoin-tracker needs the GUI extra: install it with  uv sync --extra gui  (or pip install 'live-bitcoin-tracker[gui]')",
               file=sys.stderr)
         return 1
 

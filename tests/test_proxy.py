@@ -1,6 +1,6 @@
 import pytest
 
-from btc15_widget.proxy import QUOTE_URLS, apply_bias, composite, fetch_quotes, parse_quote
+from live_bitcoin_tracker.proxy import QUOTE_URLS, apply_bias, composite, fetch_quotes, parse_quote
 
 
 def test_quote_urls_cover_the_four_exchanges():

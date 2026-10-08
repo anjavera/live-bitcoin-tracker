@@ -4,8 +4,8 @@ import pytest
 
 from polymarket_us.errors import NotFoundError
 
-from btc15_widget.history import NO_MARKET, fetch_window, load_history, with_retry
-from btc15_widget.windows import event_slug
+from live_bitcoin_tracker.history import NO_MARKET, fetch_window, load_history, with_retry
+from live_bitcoin_tracker.windows import event_slug
 
 UTC = timezone.utc
 NOW = datetime(2026, 9, 30, 8, 20, tzinfo=UTC)

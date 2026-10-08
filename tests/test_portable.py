@@ -5,14 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from btc15_widget import client, history, paths
-from btc15_widget.textio import ensure_utf8_output
+from live_bitcoin_tracker import client, history, paths
+from live_bitcoin_tracker.textio import ensure_utf8_output
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_data_lives_in_per_user_app_directories():
-    assert "btc15-widget" in paths.cache_dir().parts and "btc15-widget" in paths.config_dir().parts
+    assert "live-bitcoin-tracker" in paths.cache_dir().parts and "live-bitcoin-tracker" in paths.config_dir().parts
     assert paths.env_file().name == ".env" and paths.env_file().parent == paths.config_dir()
     assert history.HISTORY_CACHE == paths.cache_dir() / "history.json"
 
@@ -24,8 +24,8 @@ def test_directories_follow_the_platform_conventions(monkeypatch, tmp_path):
         pytest.skip("XDG variables only apply on Linux")
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
-    assert paths.cache_dir() == tmp_path / "cache" / "btc15-widget"
-    assert paths.config_dir() == tmp_path / "config" / "btc15-widget"
+    assert paths.cache_dir() == tmp_path / "cache" / "live-bitcoin-tracker"
+    assert paths.config_dir() == tmp_path / "config" / "live-bitcoin-tracker"
 
 
 def test_no_absolute_home_paths_are_baked_into_the_code():

@@ -20,25 +20,25 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            asset: btc15-widget-linux-x86_64
-            exe: btc15-widget
+            asset: bitcoin-tracker-tui-linux-x86_64
+            exe: bitcoin-tracker-tui
           - os: macos-latest
-            asset: btc15-widget-macos-arm64
-            exe: btc15-widget
+            asset: bitcoin-tracker-tui-macos-arm64
+            exe: bitcoin-tracker-tui
           - os: windows-latest
-            asset: btc15-widget-windows-x86_64.exe
-            exe: btc15-widget.exe
+            asset: bitcoin-tracker-tui-windows-x86_64.exe
+            exe: bitcoin-tracker-tui.exe
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - run: uv sync
       - name: Build the standalone app
         run: >
-          uv run --with pyinstaller pyinstaller --onefile --name btc15-widget
-          --collect-all textual --collect-submodules btc15_widget
-          --copy-metadata polymarket-us --copy-metadata btc15-widget
+          uv run --with pyinstaller pyinstaller --onefile --name bitcoin-tracker-tui
+          --collect-all textual --collect-submodules live_bitcoin_tracker
+          --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
           --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
-          packaging/btc15_app.py
+          packaging/tracker_tui_app.py
       - name: Smoke test (no network)
         shell: bash
         run: ./dist/${{ matrix.exe }} --version
@@ -58,11 +58,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            asset: btc15-gui-linux-x86_64
+            asset: bitcoin-tracker-linux-x86_64
           - os: macos-latest
-            asset: btc15-gui-macos-arm64.zip
+            asset: bitcoin-tracker-macos-arm64.zip
           - os: windows-latest
-            asset: btc15-gui-windows-x86_64.exe
+            asset: bitcoin-tracker-windows-x86_64.exe
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
@@ -72,33 +72,33 @@ jobs:
       - name: Build the desktop app (Linux)
         if: runner.os == 'Linux'
         run: >
-          uv run --with pyinstaller pyinstaller --onefile --windowed --name btc15-gui
-          --collect-submodules btc15_widget --copy-metadata polymarket-us --copy-metadata btc15-widget
+          uv run --with pyinstaller pyinstaller --onefile --windowed --name bitcoin-tracker
+          --collect-submodules live_bitcoin_tracker --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
           --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
-          packaging/btc15_gui_app.py
+          packaging/tracker_gui_app.py
       - name: Build the desktop app (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: >
-          uv run --with pyinstaller pyinstaller --onefile --windowed --name btc15-gui --icon packaging/icon.ico
-          --collect-submodules btc15_widget --copy-metadata polymarket-us --copy-metadata btc15-widget
+          uv run --with pyinstaller pyinstaller --onefile --windowed --name bitcoin-tracker --icon packaging/icon.ico
+          --collect-submodules live_bitcoin_tracker --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
           --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
-          packaging/btc15_gui_app.py
+          packaging/tracker_gui_app.py
       - name: Build the desktop app (macOS, an .app bundle)
         if: runner.os == 'macOS'
         run: >
-          uv run --with pyinstaller pyinstaller --windowed --name btc15-gui --icon packaging/icon.icns
-          --osx-bundle-identifier io.github.anjavera.btc15gui
-          --collect-submodules btc15_widget --copy-metadata polymarket-us --copy-metadata btc15-widget
+          uv run --with pyinstaller pyinstaller --windowed --name bitcoin-tracker --icon packaging/icon.icns
+          --osx-bundle-identifier io.github.anjavera.livebitcointracker
+          --collect-submodules live_bitcoin_tracker --copy-metadata polymarket-us --copy-metadata live-bitcoin-tracker
           --hidden-import _cffi_backend --collect-all nacl --collect-all cffi
-          packaging/btc15_gui_app.py
+          packaging/tracker_gui_app.py
       - name: Smoke test (no network, prints the version then draws one frame off-screen)
         shell: bash
         run: |
           case "$RUNNER_OS" in
-            Windows) BIN=dist/btc15-gui.exe ;;
-            macOS)   BIN=dist/btc15-gui.app/Contents/MacOS/btc15-gui ;;
-            *)       BIN=dist/btc15-gui ;;
+            Windows) BIN=dist/bitcoin-tracker.exe ;;
+            macOS)   BIN=dist/bitcoin-tracker.app/Contents/MacOS/bitcoin-tracker ;;
+            *)       BIN=dist/bitcoin-tracker ;;
           esac
           "$BIN" --version
           "$BIN" --snapshot smoke.png --keyless
@@ -107,9 +107,9 @@ jobs:
         shell: bash
         run: |
           case "$RUNNER_OS" in
-            Windows) mv dist/btc15-gui.exe "dist/${{ matrix.asset }}" ;;
-            macOS)   ditto -c -k --keepParent dist/btc15-gui.app "dist/${{ matrix.asset }}" ;;
-            *)       mv dist/btc15-gui "dist/${{ matrix.asset }}" ;;
+            Windows) mv dist/bitcoin-tracker.exe "dist/${{ matrix.asset }}" ;;
+            macOS)   ditto -c -k --keepParent dist/bitcoin-tracker.app "dist/${{ matrix.asset }}" ;;
+            *)       mv dist/bitcoin-tracker "dist/${{ matrix.asset }}" ;;
           esac
       - uses: actions/upload-artifact@v4
         with:
@@ -127,7 +127,7 @@ jobs:
           path: assets
           merge-multiple: true
       - name: Add the Linux installer
-        run: cp packaging/linux/install.sh packaging/linux/install-gui.sh packaging/linux/icon.png packaging/linux/btc15-gui.desktop assets/
+        run: cp packaging/linux/install.sh packaging/linux/install-gui.sh packaging/linux/icon.png packaging/linux/bitcoin-tracker.desktop assets/
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}

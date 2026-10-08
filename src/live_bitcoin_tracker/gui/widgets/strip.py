@@ -6,8 +6,8 @@ from PySide6.QtCore import QPoint, QRect, QRectF, Qt
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QToolTip, QWidget
 
-from btc15_widget.gui import theme
-from btc15_widget.gui.viewmodel import RowVM
+from live_bitcoin_tracker.gui import theme
+from live_bitcoin_tracker.gui.viewmodel import RowVM
 
 PER_ROW = 24
 CELLS = 96

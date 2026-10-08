@@ -2,7 +2,7 @@
 
 import math
 
-from btc15_widget.proxy import http_get_json
+from live_bitcoin_tracker.proxy import http_get_json
 
 INDEX_URL = ("https://gateway.polymarket.us/v1/asset-prices/history"
              "?assets=crypto:btc&bucket=ASSET_PRICE_BUCKET_1S&to=0&from={from_ts}")

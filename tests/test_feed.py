@@ -4,8 +4,8 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from polymarket_us.errors import NotFoundError
 
-from btc15_widget.feed import NO_MARKET_RETRY, PollingFeed, NoQuote, parse_bbo, parse_book, parse_event_quote, parse_lite
-from btc15_widget.windows import MARKET_SLUG, floor_window
+from live_bitcoin_tracker.feed import NO_MARKET_RETRY, PollingFeed, NoQuote, parse_bbo, parse_book, parse_event_quote, parse_lite
+from live_bitcoin_tracker.windows import MARKET_SLUG, floor_window
 
 UTC = timezone.utc
 T0 = datetime(2026, 9, 30, 9, 20, tzinfo=UTC)

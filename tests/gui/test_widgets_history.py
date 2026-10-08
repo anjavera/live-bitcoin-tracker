@@ -7,16 +7,16 @@ pytest.importorskip("PySide6")
 from PySide6.QtCore import QModelIndex, Qt  # noqa: E402
 from PySide6.QtGui import QColor  # noqa: E402
 
-from btc15_widget import colors  # noqa: E402
-from btc15_widget.gui import theme  # noqa: E402
-from btc15_widget.gui.viewmodel import RowVM, table_rows  # noqa: E402
-from btc15_widget.gui.widgets.history_table import COLUMNS, HistoryModel, HistoryTable  # noqa: E402
-from btc15_widget.gui.widgets.legend import LegendBar  # noqa: E402
-from btc15_widget.gui.widgets.statusbar import StatusBar  # noqa: E402
-from btc15_widget.gui.widgets.strip import StripWidget  # noqa: E402
-from btc15_widget.model import Window  # noqa: E402
-from btc15_widget.state import WidgetState  # noqa: E402
-from btc15_widget.windows import floor_window  # noqa: E402
+from live_bitcoin_tracker import colors  # noqa: E402
+from live_bitcoin_tracker.gui import theme  # noqa: E402
+from live_bitcoin_tracker.gui.viewmodel import RowVM, table_rows  # noqa: E402
+from live_bitcoin_tracker.gui.widgets.history_table import COLUMNS, HistoryModel, HistoryTable  # noqa: E402
+from live_bitcoin_tracker.gui.widgets.legend import LegendBar  # noqa: E402
+from live_bitcoin_tracker.gui.widgets.statusbar import StatusBar  # noqa: E402
+from live_bitcoin_tracker.gui.widgets.strip import StripWidget  # noqa: E402
+from live_bitcoin_tracker.model import Window  # noqa: E402
+from live_bitcoin_tracker.state import WidgetState  # noqa: E402
+from live_bitcoin_tracker.windows import floor_window  # noqa: E402
 
 UTC = timezone.utc
 STEP = timedelta(minutes=15)

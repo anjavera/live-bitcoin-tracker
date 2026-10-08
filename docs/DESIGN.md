@@ -51,8 +51,8 @@ One data layer, two front ends.
 
 - **Core (no UI imports):** `windows`, `model`, `history`, `feed`, `index`, `proxy`, `calibration`, `state`,
   `colors`, `sources`, `paths`, `client`.
-- **Terminal widget** (`btc15-widget`, Textual): `app.py`, `render.py`, `panel.py`.
-- **Desktop window** (`btc15-gui`, PySide6, optional `gui` extra): `src/btc15_widget/gui/`.
+- **Terminal widget** (`bitcoin-tracker-tui`, Textual): `app.py`, `render.py`, `panel.py`.
+- **Desktop window** (`bitcoin-tracker`, PySide6, optional `gui` extra): `src/live_bitcoin_tracker/gui/`.
   - `controller.py` owns the state and data sources and emits Qt signals; it has no widgets and is testable
     headless.
   - `series.py` turns index ticks into chart points (pure functions, no Qt).

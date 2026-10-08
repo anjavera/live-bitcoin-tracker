@@ -1,5 +1,5 @@
 [project]
-name = "btc15-widget"
+name = "live-bitcoin-tracker"
 version = "0.1.0"
 description = "Unofficial live widget for Polymarket US BTC Up or Down 15-minute markets"
 readme = "README.md"
@@ -21,9 +21,9 @@ gui = ["PySide6-Essentials>=6.7"]
 dev = ["pytest>=8"]
 
 [project.scripts]
-pm = "btc15_widget.cli:main"
-btc15-widget = "btc15_widget.app:main"
-btc15-gui = "btc15_widget.gui.main:cli"
+pm = "live_bitcoin_tracker.cli:main"
+bitcoin-tracker-tui = "live_bitcoin_tracker.app:main"
+bitcoin-tracker = "live_bitcoin_tracker.gui.main:cli"
 
 [build-system]
 requires = ["uv_build>=0.8,<0.13"]

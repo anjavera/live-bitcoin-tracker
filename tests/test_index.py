@@ -1,6 +1,6 @@
 import pytest
 
-from btc15_widget.index import INDEX_URL, fetch_index, parse_index
+from live_bitcoin_tracker.index import INDEX_URL, fetch_index, parse_index
 
 
 def payload(*closes, tick_counts=None, start=1000):
@@ -50,13 +50,13 @@ def test_fetch_failure_is_none_not_an_exception():
 
 
 def test_parse_index_history_skips_gap_candles():
-    from btc15_widget.index import parse_index_history
+    from live_bitcoin_tracker.index import parse_index_history
 
     assert parse_index_history(payload("1.5", "1.5", "2.5", tick_counts=[1, 0, 1])) == [(1000, 1.5), (1002, 2.5)]
 
 
 def test_parse_index_history_drops_bad_prices_and_junk():
-    from btc15_widget.index import parse_index_history
+    from live_bitcoin_tracker.index import parse_index_history
 
     assert parse_index_history(payload("nan", "-3", "x", "4.0")) == [(1003, 4.0)]
     assert parse_index_history({}) == []
@@ -64,7 +64,7 @@ def test_parse_index_history_drops_bad_prices_and_junk():
 
 
 def test_fetch_index_history_uses_unix_seconds_url():
-    from btc15_widget.index import fetch_index_history
+    from live_bitcoin_tracker.index import fetch_index_history
 
     seen = []
     result = fetch_index_history(1234, get_json=lambda url: seen.append(url) or payload("5.0"))
@@ -73,7 +73,7 @@ def test_fetch_index_history_uses_unix_seconds_url():
 
 
 def test_fetch_index_history_returns_empty_on_error():
-    from btc15_widget.index import fetch_index_history
+    from live_bitcoin_tracker.index import fetch_index_history
 
     def boom(url):
         raise OSError("down")

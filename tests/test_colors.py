@@ -2,7 +2,7 @@ import colorsys
 
 import pytest
 
-from btc15_widget.colors import BACKGROUND, BAND_EDGES, band_index, net_color, result_color, text_on
+from live_bitcoin_tracker.colors import BACKGROUND, BAND_EDGES, band_index, net_color, result_color, text_on
 
 BG = BACKGROUND
 MIDPOINTS = [5, 17, 37, 75, 150, 250, 350, 450, 750]  # one net value inside each band

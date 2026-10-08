@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
-from btc15_widget import colors
-from btc15_widget.gui import theme
-from btc15_widget.gui.viewmodel import (LEGEND_BANDS, header_vm, odds_vm, status_text, table_rows,
+from live_bitcoin_tracker import colors
+from live_bitcoin_tracker.gui import theme
+from live_bitcoin_tracker.gui.viewmodel import (LEGEND_BANDS, header_vm, odds_vm, status_text, table_rows,
                                         window_column_title)
-from btc15_widget.history import NO_MARKET
-from btc15_widget.model import LiveTick, Window
-from btc15_widget.state import WidgetState
-from btc15_widget.windows import MARKET_SLUG, floor_window
+from live_bitcoin_tracker.history import NO_MARKET
+from live_bitcoin_tracker.model import LiveTick, Window
+from live_bitcoin_tracker.state import WidgetState
+from live_bitcoin_tracker.windows import MARKET_SLUG, floor_window
 
 UTC = timezone.utc
 STEP = timedelta(minutes=15)

@@ -4,16 +4,16 @@ from pathlib import Path
 
 from platformdirs import user_cache_dir, user_config_dir
 
-APP_NAME = "btc15-widget"
+APP_NAME = "live-bitcoin-tracker"
 
 
 def cache_dir() -> Path:
-    """Linux ~/.cache/btc15-widget, macOS ~/Library/Caches/btc15-widget, Windows %LOCALAPPDATA%\\btc15-widget\\Cache."""
+    """Linux ~/.cache/bitcoin-tracker-tui, macOS ~/Library/Caches/bitcoin-tracker-tui, Windows %LOCALAPPDATA%\\bitcoin-tracker-tui\\Cache."""
     return Path(user_cache_dir(APP_NAME))
 
 
 def config_dir() -> Path:
-    """Linux ~/.config/btc15-widget, macOS ~/Library/Application Support/btc15-widget, Windows %APPDATA%\\btc15-widget."""
+    """Linux ~/.config/bitcoin-tracker-tui, macOS ~/Library/Application Support/bitcoin-tracker-tui, Windows %APPDATA%\\bitcoin-tracker-tui."""
     return Path(user_config_dir(APP_NAME, roaming=True))
 
 

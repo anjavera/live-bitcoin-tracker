@@ -6,13 +6,13 @@ pytest.importorskip("PySide6")
 
 from PySide6.QtGui import QColor  # noqa: E402
 
-from btc15_widget.gui import theme  # noqa: E402
-from btc15_widget.gui.series import ChartPoint  # noqa: E402
-from btc15_widget.gui.viewmodel import HeaderVM, OddsVM  # noqa: E402
-from btc15_widget.gui.widgets.chart import PriceChart, map_point, time_labels  # noqa: E402
-from btc15_widget.gui.widgets.coin import CoinWidget, arc_spans  # noqa: E402
-from btc15_widget.gui.widgets.header import HeaderCard  # noqa: E402
-from btc15_widget.gui.widgets.odds import OddsCard  # noqa: E402
+from live_bitcoin_tracker.gui import theme  # noqa: E402
+from live_bitcoin_tracker.gui.series import ChartPoint  # noqa: E402
+from live_bitcoin_tracker.gui.viewmodel import HeaderVM, OddsVM  # noqa: E402
+from live_bitcoin_tracker.gui.widgets.chart import PriceChart, map_point, time_labels  # noqa: E402
+from live_bitcoin_tracker.gui.widgets.coin import CoinWidget, arc_spans  # noqa: E402
+from live_bitcoin_tracker.gui.widgets.header import HeaderCard  # noqa: E402
+from live_bitcoin_tracker.gui.widgets.odds import OddsCard  # noqa: E402
 
 START = datetime(2026, 10, 2, 21, 0, tzinfo=timezone.utc)
 T0 = int(START.timestamp())

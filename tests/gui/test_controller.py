@@ -4,10 +4,10 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from btc15_widget.gui.series import ChartPoint
-from btc15_widget.model import LiveTick, Window
-from btc15_widget.sources import DataSources
-from btc15_widget.windows import MARKET_SLUG, floor_window
+from live_bitcoin_tracker.gui.series import ChartPoint
+from live_bitcoin_tracker.model import LiveTick, Window
+from live_bitcoin_tracker.sources import DataSources
+from live_bitcoin_tracker.windows import MARKET_SLUG, floor_window
 
 from .conftest import pump
 
@@ -54,7 +54,7 @@ class FakeFeed:
 
 @pytest.fixture
 def make(qapp):
-    from btc15_widget.gui.controller import Controller
+    from live_bitcoin_tracker.gui.controller import Controller
 
     made = []
 
@@ -68,8 +68,8 @@ def make(qapp):
         controller.stop()
 
 
-def btc15_threads():
-    return [t for t in threading.enumerate() if t.name.startswith("btc15-")]
+def tracker_threads():
+    return [t for t in threading.enumerate() if t.name.startswith("tracker-")]
 
 
 def test_history_loads_into_state(make):
@@ -80,8 +80,8 @@ def test_history_loads_into_state(make):
 
 
 def test_retry_constant_matches_the_terminal_app():
-    from btc15_widget import app
-    from btc15_widget.gui import controller
+    from live_bitcoin_tracker import app
+    from live_bitcoin_tracker.gui import controller
 
     assert controller.RETRY_FAILED_LOAD_AFTER == app.RETRY_FAILED_LOAD_AFTER
 
@@ -188,7 +188,7 @@ def test_refresh_forces_a_reload(make):
 
 
 def test_calibration_runs_on_a_copy_and_lands_on_state(make, monkeypatch):
-    from btc15_widget.gui import controller
+    from live_bitcoin_tracker.gui import controller
 
     seen = {}
 
@@ -221,7 +221,7 @@ def test_stop_ends_threads_quickly(make):
     began = time.monotonic()
     c.stop()
     assert time.monotonic() - began < 5
-    assert btc15_threads() == []
+    assert tracker_threads() == []
     c.stop()  # idempotent
 
 
@@ -241,12 +241,12 @@ def test_stop_during_history_load_does_not_raise(make, monkeypatch):
     threading.Timer(0.2, release.set).start()
     c.stop()
     pump(lambda: False, timeout=0.3)  # a late reply must be dropped quietly
-    assert errors == [] and btc15_threads() == []
+    assert errors == [] and tracker_threads() == []
     assert c.state.windows == []
 
 
 def test_sources_unavailable_sets_error_not_crash(make, monkeypatch):
-    from btc15_widget.gui import controller
+    from live_bitcoin_tracker.gui import controller
 
     def no_sources(use_keys=True):
         raise RuntimeError("no creds")

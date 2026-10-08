@@ -11,9 +11,9 @@ from datetime import datetime, timezone
 from polymarket_us.errors import NotFoundError
 from polymarket_us.websocket import MarketsWebSocket
 
-from btc15_widget.client import load_credentials
-from btc15_widget.model import LiveTick
-from btc15_widget.windows import MARKET_SLUG, event_slug, floor_window, window_slugs
+from live_bitcoin_tracker.client import load_credentials
+from live_bitcoin_tracker.model import LiveTick
+from live_bitcoin_tracker.windows import MARKET_SLUG, event_slug, floor_window, window_slugs
 
 POLL_EVERY = 2.0  # seconds between price polls
 MAX_BACKOFF = 60

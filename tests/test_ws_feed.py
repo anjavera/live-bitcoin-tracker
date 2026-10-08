@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from btc15_widget.feed import LiveFeed, parse_lite
+from live_bitcoin_tracker.feed import LiveFeed, parse_lite
 
 LITE = {
     "marketDataLite": {

@@ -2,11 +2,11 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from btc15_widget import client
-from btc15_widget.model import Window
-from btc15_widget.sources import CALIBRATION_EVERY, QUOTES_EVERY, DataSources, default_sources, run_calibration
-from btc15_widget.state import WidgetState
-from btc15_widget.windows import floor_window
+from live_bitcoin_tracker import client
+from live_bitcoin_tracker.model import Window
+from live_bitcoin_tracker.sources import CALIBRATION_EVERY, QUOTES_EVERY, DataSources, default_sources, run_calibration
+from live_bitcoin_tracker.state import WidgetState
+from live_bitcoin_tracker.windows import floor_window
 
 UTC = timezone.utc
 NOW = datetime(2026, 9, 30, 9, 20, tzinfo=UTC)
@@ -81,8 +81,8 @@ def test_run_calibration_with_no_usable_data_returns_none():
 
 
 def test_widget_history_skips_volume_and_shares_the_cli_cache(monkeypatch):
-    from btc15_widget import sources as sources_module
-    from btc15_widget.history import HISTORY_CACHE
+    from live_bitcoin_tracker import sources as sources_module
+    from live_bitcoin_tracker.history import HISTORY_CACHE
 
     seen = {}
 
@@ -103,7 +103,7 @@ def feed_type(sources):
 
 
 def test_without_credentials_the_mode_is_keyless(monkeypatch):
-    from btc15_widget import sources as sources_module
+    from live_bitcoin_tracker import sources as sources_module
 
     monkeypatch.setattr(sources_module, "has_credentials", lambda: False)
     ds = default_sources()
@@ -114,7 +114,7 @@ def test_without_credentials_the_mode_is_keyless(monkeypatch):
 
 
 def test_with_credentials_the_mode_is_keyed_and_uses_the_live_feed(monkeypatch):
-    from btc15_widget import sources as sources_module
+    from live_bitcoin_tracker import sources as sources_module
 
     monkeypatch.setattr(sources_module, "has_credentials", lambda: True)
     ds = default_sources()
@@ -125,7 +125,7 @@ def test_with_credentials_the_mode_is_keyed_and_uses_the_live_feed(monkeypatch):
 
 
 def test_use_keys_false_forces_keyless_even_when_keys_exist(monkeypatch):
-    from btc15_widget import sources as sources_module
+    from live_bitcoin_tracker import sources as sources_module
 
     monkeypatch.setattr(sources_module, "has_credentials", lambda: True)
     ds = default_sources(use_keys=False)
@@ -139,7 +139,7 @@ def test_default_sources_include_the_index_fetcher(monkeypatch):
     monkeypatch.delenv("POLYMARKET_KEY_ID", raising=False)
     monkeypatch.delenv("POLYMARKET_SECRET_KEY", raising=False)
     monkeypatch.setattr(client, "load_dotenv", lambda *a, **k: False)
-    from btc15_widget.index import fetch_index
+    from live_bitcoin_tracker.index import fetch_index
     assert default_sources(use_keys=False).fetch_index is fetch_index
 
 
@@ -147,7 +147,7 @@ def test_default_sources_expose_index_history(monkeypatch):
     monkeypatch.delenv("POLYMARKET_KEY_ID", raising=False)
     monkeypatch.delenv("POLYMARKET_SECRET_KEY", raising=False)
     monkeypatch.setattr(client, "load_dotenv", lambda *a, **k: False)
-    from btc15_widget.index import fetch_index_history
+    from live_bitcoin_tracker.index import fetch_index_history
     assert default_sources(use_keys=False).fetch_index_history is fetch_index_history
 
 

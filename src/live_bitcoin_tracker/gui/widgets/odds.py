@@ -4,8 +4,8 @@ from PySide6.QtCore import QRectF
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QFrame, QGridLayout, QLabel, QVBoxLayout, QWidget
 
-from btc15_widget.gui import theme
-from btc15_widget.gui.viewmodel import OddsVM
+from live_bitcoin_tracker.gui import theme
+from live_bitcoin_tracker.gui.viewmodel import OddsVM
 
 
 class _Bar(QWidget):

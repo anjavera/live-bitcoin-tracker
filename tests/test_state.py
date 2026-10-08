@@ -2,10 +2,10 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from btc15_widget.calibration import Calibration
-from btc15_widget.model import LiveTick, Window
-from btc15_widget.state import STALE_SECONDS, WidgetState
-from btc15_widget.windows import MARKET_SLUG, floor_window
+from live_bitcoin_tracker.calibration import Calibration
+from live_bitcoin_tracker.model import LiveTick, Window
+from live_bitcoin_tracker.state import STALE_SECONDS, WidgetState
+from live_bitcoin_tracker.windows import MARKET_SLUG, floor_window
 
 UTC = timezone.utc
 NOW = datetime(2026, 9, 30, 9, 20, tzinfo=UTC)  # live window starts 09:15Z
@@ -156,7 +156,7 @@ def test_table_windows_are_the_strip_plus_the_live_window():
 
 
 def test_live_market_missing_flag():
-    from btc15_widget.history import NO_MARKET
+    from live_bitcoin_tracker.history import NO_MARKET
 
     s = state_with()
     assert s.live_market_missing(NOW) is False  # the live window exists
@@ -171,7 +171,7 @@ def test_live_market_missing_flag():
 
 
 def test_a_missing_live_market_is_rechecked_every_20_seconds():
-    from btc15_widget.history import NO_MARKET
+    from live_bitcoin_tracker.history import NO_MARKET
 
     ws = history()
     ws[-1] = Window(ws[-1].start, open=None, close=None, error=NO_MARKET)

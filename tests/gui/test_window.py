@@ -10,12 +10,12 @@ from PySide6.QtCore import Qt  # noqa: E402
 from PySide6.QtGui import QKeySequence  # noqa: E402
 from PySide6.QtWidgets import QLabel  # noqa: E402
 
-from btc15_widget.gui.controller import Controller  # noqa: E402
-from btc15_widget.gui.window import MainWindow  # noqa: E402
-from btc15_widget.history import NO_MARKET  # noqa: E402
-from btc15_widget.model import LiveTick, Window  # noqa: E402
-from btc15_widget.sources import DataSources  # noqa: E402
-from btc15_widget.windows import MARKET_SLUG, floor_window  # noqa: E402
+from live_bitcoin_tracker.gui.controller import Controller  # noqa: E402
+from live_bitcoin_tracker.gui.window import MainWindow  # noqa: E402
+from live_bitcoin_tracker.history import NO_MARKET  # noqa: E402
+from live_bitcoin_tracker.model import LiveTick, Window  # noqa: E402
+from live_bitcoin_tracker.sources import DataSources  # noqa: E402
+from live_bitcoin_tracker.windows import MARKET_SLUG, floor_window  # noqa: E402
 
 from .conftest import pump  # noqa: E402
 
@@ -133,7 +133,7 @@ def test_always_on_top_toggle(make):
 
 
 def test_always_on_top_disabled_on_wayland(monkeypatch, make):
-    monkeypatch.setattr("btc15_widget.gui.window.is_wayland", lambda: True)
+    monkeypatch.setattr("live_bitcoin_tracker.gui.window.is_wayland", lambda: True)
     window, _, _ = make()
     assert not window.top_action.isEnabled()
     assert "Wayland" in window.top_action.toolTip()
@@ -146,7 +146,7 @@ def test_close_stops_controller(make):
     window, controller, _ = make()
     assert pump(lambda: window.table.model().rowCount() == 97)
     window.close()
-    assert [t for t in threading.enumerate() if t.name.startswith("btc15-")] == []
+    assert [t for t in threading.enumerate() if t.name.startswith("tracker-")] == []
 
 
 def test_no_market_state_shows_dashes_and_message(make):
@@ -187,7 +187,7 @@ def test_refresh_action_forces_history_reload(make):
 
 
 def test_snapshot_writes_png(qapp, tmp_path, monkeypatch):
-    from btc15_widget.gui import main as gui_main
+    from live_bitcoin_tracker.gui import main as gui_main
 
     clock = Clock()
     monkeypatch.setattr(gui_main, "_sources_override", sources(clock))
@@ -198,7 +198,7 @@ def test_snapshot_writes_png(qapp, tmp_path, monkeypatch):
 
 
 def test_snapshot_unwritable_path_returns_error(qapp, tmp_path, monkeypatch, capsys):
-    from btc15_widget.gui import main as gui_main
+    from live_bitcoin_tracker.gui import main as gui_main
 
     clock = Clock()
     monkeypatch.setattr(gui_main, "_sources_override", sources(clock))

@@ -1,7 +1,7 @@
 import pytest
 
-from btc15_widget.colors import result_color
-from btc15_widget.panel import COIN_COLS, COIN_ROWS, coin_cells, panel_layout, render_coin
+from live_bitcoin_tracker.colors import result_color
+from live_bitcoin_tracker.panel import COIN_COLS, COIN_ROWS, coin_cells, panel_layout, render_coin
 
 ORANGE = "#f7931a"
 

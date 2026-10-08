@@ -11,10 +11,10 @@ from datetime import datetime, timedelta, timezone
 
 from PySide6.QtCore import QObject, Qt, Signal, Slot
 
-from btc15_widget.gui.series import ChartPoint, append_point, window_points
-from btc15_widget.sources import CALIBRATION_EVERY, INDEX_EVERY, QUOTES_EVERY, DataSources, default_sources, run_calibration
-from btc15_widget.state import WidgetState
-from btc15_widget.windows import floor_window
+from live_bitcoin_tracker.gui.series import ChartPoint, append_point, window_points
+from live_bitcoin_tracker.sources import CALIBRATION_EVERY, INDEX_EVERY, QUOTES_EVERY, DataSources, default_sources, run_calibration
+from live_bitcoin_tracker.state import WidgetState
+from live_bitcoin_tracker.windows import floor_window
 
 RETRY_FAILED_LOAD_AFTER = timedelta(seconds=30)  # same back-off as the terminal widget
 STOP_JOIN_SECONDS = 5.0
@@ -61,7 +61,7 @@ class Controller(QObject):
 
     def _spawn(self, name: str, target: Callable[[], None]) -> None:
         self._threads = [t for t in self._threads if t.is_alive()]
-        thread = threading.Thread(target=target, daemon=True, name=f"btc15-{name}")
+        thread = threading.Thread(target=target, daemon=True, name=f"tracker-{name}")
         self._threads.append(thread)
         thread.start()
 

@@ -1,4 +1,4 @@
-from btc15_widget.gui import theme
+from live_bitcoin_tracker.gui import theme
 
 
 def test_palette_values():

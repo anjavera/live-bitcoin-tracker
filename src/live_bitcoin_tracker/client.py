@@ -5,7 +5,7 @@ import os
 from dotenv import find_dotenv, load_dotenv
 from polymarket_us import PolymarketUS
 
-from btc15_widget.paths import env_file
+from live_bitcoin_tracker.paths import env_file
 
 
 def _read_env() -> tuple[str | None, str | None]:

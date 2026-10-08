@@ -4,14 +4,14 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from btc15_widget.calibration import Calibration, fetch_candles, measure
-from btc15_widget.client import get_public_client, has_credentials
-from btc15_widget.feed import LiveFeed, PollingFeed
-from btc15_widget.history import HISTORY_CACHE, load_history
-from btc15_widget.index import fetch_index, fetch_index_history
-from btc15_widget.model import LiveTick, Window
-from btc15_widget.proxy import fetch_quotes
-from btc15_widget.state import WidgetState
+from live_bitcoin_tracker.calibration import Calibration, fetch_candles, measure
+from live_bitcoin_tracker.client import get_public_client, has_credentials
+from live_bitcoin_tracker.feed import LiveFeed, PollingFeed
+from live_bitcoin_tracker.history import HISTORY_CACHE, load_history
+from live_bitcoin_tracker.index import fetch_index, fetch_index_history
+from live_bitcoin_tracker.model import LiveTick, Window
+from live_bitcoin_tracker.proxy import fetch_quotes
+from live_bitcoin_tracker.state import WidgetState
 
 QUOTES_EVERY = 2.0
 INDEX_EVERY = 1.0  # the index publishes about once a second  # seconds between exchange quote polls

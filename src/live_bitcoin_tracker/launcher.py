@@ -3,9 +3,9 @@
 import sys
 from collections.abc import Callable
 
-from btc15_widget.textio import ensure_utf8_output
+from live_bitcoin_tracker.textio import ensure_utf8_output
 
-REPORT_URL = "https://github.com/anjavera/unofficial-bitcoin-up-or-down-15-minute-widget-tracker/issues"
+REPORT_URL = "https://github.com/anjavera/live-bitcoin-tracker/issues"
 
 
 def _wait_for_enter() -> None:
@@ -19,7 +19,7 @@ def run(main: Callable[[], None] | None = None, wait: Callable[[], None] = _wait
         interactive: bool | None = None) -> int:
     """Run `main`; on a crash print a short explanation and (in a real terminal) wait before the window closes."""
     if main is None:
-        from btc15_widget.app import main as widget_main
+        from live_bitcoin_tracker.app import main as widget_main
 
         main = widget_main
     if interactive is None:

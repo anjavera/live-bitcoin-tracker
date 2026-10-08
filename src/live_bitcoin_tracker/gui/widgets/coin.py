@@ -4,7 +4,7 @@ from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QColor, QFont, QPainter, QPen
 from PySide6.QtWidgets import QWidget
 
-from btc15_widget.gui import theme
+from live_bitcoin_tracker.gui import theme
 
 START_ANGLE = 90 * 16  # Qt measures in 1/16 degrees from 3 o'clock, counter-clockwise; 12 o'clock is 90 degrees
 FULL_TURN = 360 * 16

@@ -14,13 +14,13 @@ from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Static
 
-from btc15_widget.colors import BACKGROUND
-from btc15_widget.panel import panel_layout, render_coin
-from btc15_widget.render import build_table, render_header, render_legend, render_status, render_strip, split_table
-from btc15_widget.sources import CALIBRATION_EVERY, INDEX_EVERY, QUOTES_EVERY, DataSources, default_sources, run_calibration
-from btc15_widget.state import WidgetState
-from btc15_widget.textio import ensure_utf8_output
-from btc15_widget.windows import floor_window, seconds_remaining
+from live_bitcoin_tracker.colors import BACKGROUND
+from live_bitcoin_tracker.panel import panel_layout, render_coin
+from live_bitcoin_tracker.render import build_table, render_header, render_legend, render_status, render_strip, split_table
+from live_bitcoin_tracker.sources import CALIBRATION_EVERY, INDEX_EVERY, QUOTES_EVERY, DataSources, default_sources, run_calibration
+from live_bitcoin_tracker.state import WidgetState
+from live_bitcoin_tracker.textio import ensure_utf8_output
+from live_bitcoin_tracker.windows import floor_window, seconds_remaining
 
 MIN_WIDTH, MIN_HEIGHT = 80, 16  # the widest text block is 80 columns; the stack is about 15 rows
 TOO_SMALL = f"Terminal too small (need {MIN_WIDTH}x{MIN_HEIGHT})"
@@ -33,7 +33,7 @@ def _version() -> str:
     try:
         from importlib.metadata import version
 
-        return version("btc15-widget")
+        return version("live-bitcoin-tracker")
     except Exception:  # not installed as a package (e.g. some frozen builds)
         return "unknown"
 
@@ -124,8 +124,8 @@ class WidgetApp(App):
         self.refresh_view()
         if self._sources is not None:
             self._start_history_load()
-            threading.Thread(target=self._poll_quotes, daemon=True, name="btc15-quotes").start()
-            threading.Thread(target=self._poll_index, daemon=True, name="btc15-index").start()
+            threading.Thread(target=self._poll_quotes, daemon=True, name="tracker-quotes").start()
+            threading.Thread(target=self._poll_index, daemon=True, name="tracker-index").start()
             self.run_worker(self._run_feed(), exit_on_error=False, group="feed")
         self.set_interval(1.0, self._on_second)
 
@@ -152,7 +152,7 @@ class WidgetApp(App):
         self._loading = True
         self.state.loading = True
         # daemon thread: Textual's thread workers run in asyncio's default executor, which blocks exit
-        threading.Thread(target=self._load_history, daemon=True, name="btc15-history").start()
+        threading.Thread(target=self._load_history, daemon=True, name="tracker-history").start()
 
     def _apply(self, fn, *args) -> None:
         """Run `fn` on the UI thread; quietly give up if the app is shutting down."""
@@ -323,9 +323,9 @@ def _print_snapshot(sources: DataSources, clock: Callable[[], datetime]) -> None
 def main(argv: list[str] | None = None, sources: DataSources | None = None,
          clock: Callable[[], datetime] = utcnow) -> None:
     ensure_utf8_output()
-    parser = argparse.ArgumentParser(prog="btc15-widget", description="Live BTC 15-minute Up/Down terminal widget")
+    parser = argparse.ArgumentParser(prog="bitcoin-tracker-tui", description="Live BTC 15-minute Up/Down terminal widget")
     parser.add_argument("--snapshot", action="store_true", help="print one plain-text frame and exit")
-    parser.add_argument("--version", action="version", version=f"btc15-widget {_version()}")
+    parser.add_argument("--version", action="version", version=f"bitcoin-tracker-tui {_version()}")
     parser.add_argument("--keyless", action="store_true", help="ignore any API keys and use public data only")
     args = parser.parse_args(argv)
     if not args.snapshot:

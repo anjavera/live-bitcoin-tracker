@@ -5,9 +5,9 @@ import pytest
 from rich.color import Color
 from rich.console import Console
 
-from btc15_widget.colors import net_color, result_color
-from btc15_widget.model import Window
-from btc15_widget.render import CELLS_PER_ROW, render_legend, render_strip
+from live_bitcoin_tracker.colors import net_color, result_color
+from live_bitcoin_tracker.model import Window
+from live_bitcoin_tracker.render import CELLS_PER_ROW, render_legend, render_strip
 
 UTC = timezone.utc
 T0 = datetime(2026, 9, 29, 13, 0, tzinfo=UTC)  # 09:00 ET
@@ -71,11 +71,11 @@ def test_legend_lists_all_bands():
 
 
 # ---- header and status -------------------------------------------------------------------------
-from btc15_widget.calibration import Calibration
-from btc15_widget.model import LiveTick
-from btc15_widget.render import render_header, render_status
-from btc15_widget.state import WidgetState
-from btc15_widget.windows import MARKET_SLUG, floor_window
+from live_bitcoin_tracker.calibration import Calibration
+from live_bitcoin_tracker.model import LiveTick
+from live_bitcoin_tracker.render import render_header, render_status
+from live_bitcoin_tracker.state import WidgetState
+from live_bitcoin_tracker.windows import MARKET_SLUG, floor_window
 
 NOW = datetime(2026, 9, 30, 9, 20, tzinfo=UTC)  # live window starts 09:15Z
 LIVE = floor_window(NOW)
@@ -156,7 +156,7 @@ def test_status_explains_the_first_load_wait():
 
 
 def test_text_blocks_fit_the_minimum_terminal_width():
-    from btc15_widget.app import MIN_WIDTH
+    from live_bitcoin_tracker.app import MIN_WIDTH
 
     s = full_state()
     s.apply_quotes({"a": 100123.45}, NOW)  # widest realistic price
@@ -169,7 +169,7 @@ def test_text_blocks_fit_the_minimum_terminal_width():
 
 
 # ---- table (shared by `pm btc15` and the live widget) ------------------------------------------
-from btc15_widget.render import build_table, split_table
+from live_bitcoin_tracker.render import build_table, split_table
 
 
 def table_cells(table, name):
@@ -241,7 +241,7 @@ def test_legend_minus_marks_the_net_down_row():
 
 
 def test_a_window_with_no_market_says_none_not_gap():
-    from btc15_widget.history import NO_MARKET
+    from live_bitcoin_tracker.history import NO_MARKET
 
     none_window = Window(T0, open=None, close=None, error=NO_MARKET)
     failed = Window(T0 + timedelta(minutes=15), open=None, close=None, error="timeout")

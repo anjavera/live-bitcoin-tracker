@@ -1,6 +1,6 @@
 import pytest
 
-from btc15_widget import launcher
+from live_bitcoin_tracker import launcher
 
 
 def test_normal_exit_returns_zero_without_waiting():

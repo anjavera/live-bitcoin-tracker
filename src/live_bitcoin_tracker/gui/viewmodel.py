@@ -3,12 +3,12 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta, tzinfo
 
-from btc15_widget import colors
-from btc15_widget.gui import theme
-from btc15_widget.history import NO_MARKET
-from btc15_widget.render import ET, _countdown, _signed_money
-from btc15_widget.state import WidgetState
-from btc15_widget.windows import floor_window, seconds_remaining
+from live_bitcoin_tracker import colors
+from live_bitcoin_tracker.gui import theme
+from live_bitcoin_tracker.history import NO_MARKET
+from live_bitcoin_tracker.render import ET, _countdown, _signed_money
+from live_bitcoin_tracker.state import WidgetState
+from live_bitcoin_tracker.windows import floor_window, seconds_remaining
 
 WINDOW_SECONDS = 900
 DASH = "—"

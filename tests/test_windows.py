@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from btc15_widget.windows import floor_window, window_slugs
+from live_bitcoin_tracker.windows import floor_window, window_slugs
 
 UTC = timezone.utc
 
@@ -26,13 +26,13 @@ def test_window_slugs_can_start_in_the_past():
 
 
 def test_event_slug():
-    from btc15_widget.windows import event_slug
+    from live_bitcoin_tracker.windows import event_slug
 
     assert event_slug(datetime(2026, 9, 30, 9, 15, tzinfo=UTC)) == "btc-updown-15m-2026-09-30-0915z"
 
 
 def test_seconds_remaining_clamps_at_zero():
-    from btc15_widget.windows import seconds_remaining
+    from live_bitcoin_tracker.windows import seconds_remaining
 
     start = datetime(2026, 9, 30, 9, 0, tzinfo=UTC)
     assert seconds_remaining(datetime(2026, 9, 30, 9, 10, tzinfo=UTC), start) == 300

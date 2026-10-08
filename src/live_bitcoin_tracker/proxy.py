@@ -15,7 +15,7 @@ QUOTE_URLS = {
 
 
 def http_get_json(url: str) -> dict:
-    request = urllib.request.Request(url, headers={"User-Agent": "btc15-widget"})
+    request = urllib.request.Request(url, headers={"User-Agent": "live-bitcoin-tracker"})
     with urllib.request.urlopen(request, timeout=5) as response:
         return json.load(response)
 

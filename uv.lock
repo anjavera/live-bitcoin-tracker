@@ -16,42 +16,6 @@ wheels = [
 ]
 
 [[package]]
-name = "btc15-widget"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "platformdirs" },
-    { name = "polymarket-us" },
-    { name = "python-dotenv" },
-    { name = "textual" },
-    { name = "tzdata" },
-]
-
-[package.optional-dependencies]
-gui = [
-    { name = "pyside6-essentials" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "platformdirs", specifier = ">=4.0" },
-    { name = "polymarket-us", specifier = ">=0.1.2" },
-    { name = "pyside6-essentials", marker = "extra == 'gui'", specifier = ">=6.7" },
-    { name = "python-dotenv", specifier = ">=1.2.3" },
-    { name = "textual", specifier = ">=8.2.8" },
-    { name = "tzdata", specifier = ">=2024.1" },
-]
-provides-extras = ["gui"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8" }]
-
-[[package]]
 name = "certifi"
 version = "2026.7.22"
 source = { registry = "https://pypi.org/simple" }
@@ -217,6 +181,42 @@ sdist = { url = "https://files.pythonhosted.org/packages/45/98/7a1a5f31fd5c7ba93
 wheels = [
     { url = "https://files.pythonhosted.org/packages/13/d4/1152d1c7ab42d8b908be64fd200ddc870dc9d4925e951198702084aa1a7d/linkify_it_py-2.2.0-py3-none-any.whl", hash = "sha256:3adc40eb5af300b2605fcfdb968c24e1d780a90f1f2221af7c15e5111e94d443", size = 21971, upload-time = "2026-08-29T07:07:07.164Z" },
 ]
+
+[[package]]
+name = "live-bitcoin-tracker"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "platformdirs" },
+    { name = "polymarket-us" },
+    { name = "python-dotenv" },
+    { name = "textual" },
+    { name = "tzdata" },
+]
+
+[package.optional-dependencies]
+gui = [
+    { name = "pyside6-essentials" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "platformdirs", specifier = ">=4.0" },
+    { name = "polymarket-us", specifier = ">=0.1.2" },
+    { name = "pyside6-essentials", marker = "extra == 'gui'", specifier = ">=6.7" },
+    { name = "python-dotenv", specifier = ">=1.2.3" },
+    { name = "textual", specifier = ">=8.2.8" },
+    { name = "tzdata", specifier = ">=2024.1" },
+]
+provides-extras = ["gui"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8" }]
 
 [[package]]
 name = "markdown-it-py"
