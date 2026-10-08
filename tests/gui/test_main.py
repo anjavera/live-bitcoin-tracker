@@ -89,3 +89,28 @@ def test_the_linux_desktop_entry_matches_the_app_and_the_installer():
     assert "Icon=live-bitcoin-tracker" in entry and "StartupWMClass=live-bitcoin-tracker" in entry
     installer = (root / "install-gui.sh").read_text()
     assert "live-bitcoin-tracker.png" in installer and "live-bitcoin-tracker.desktop" in installer
+
+
+def test_a_qt_library_that_will_not_load_is_reported_as_such_not_as_a_missing_extra(monkeypatch, capsys):
+    from live_bitcoin_tracker.gui import main
+
+    def boom(_args):
+        raise ImportError("libEGL.so.1: cannot open shared object file: No such file or directory", name="PySide6.QtGui")
+
+    monkeypatch.setattr(main, "run", boom)
+    monkeypatch.setattr(main, "display_problem", lambda *a, **k: None)
+    assert main.main([]) == 1
+    err = capsys.readouterr().err
+    assert "libEGL.so.1" in err and "needs the GUI extra" not in err
+
+
+def test_a_missing_pyside_is_still_reported_as_a_missing_extra(monkeypatch, capsys):
+    from live_bitcoin_tracker.gui import main
+
+    def boom(_args):
+        raise ImportError("No module named 'PySide6'", name="PySide6")
+
+    monkeypatch.setattr(main, "run", boom)
+    monkeypatch.setattr(main, "display_problem", lambda *a, **k: None)
+    assert main.main([]) == 1
+    assert "needs the GUI extra" in capsys.readouterr().err

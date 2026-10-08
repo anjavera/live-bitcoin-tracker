@@ -161,9 +161,15 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     try:
         return run(args)
-    except ImportError:
-        print("bitcoin-tracker needs the GUI extra: install it with  uv sync --extra gui  (or pip install 'live-bitcoin-tracker[gui]')",
-              file=sys.stderr)
+    except ImportError as e:
+        missing = getattr(e, "name", "") or ""
+        if missing.startswith("PySide6") and not str(e).startswith("lib"):
+            print("bitcoin-tracker needs the GUI extra: install it with  uv sync --extra gui  (or pip install 'live-bitcoin-tracker[gui]')",
+                  file=sys.stderr)
+        else:  # Qt is there but cannot load: usually a system library, so say what the loader said
+            print(f"bitcoin-tracker could not start its window library: {e}\n"
+                  "On Linux this usually means a system package is missing, for example: sudo apt install libgl1 libegl1 libxkbcommon0",
+                  file=sys.stderr)
         return 1
 
 
