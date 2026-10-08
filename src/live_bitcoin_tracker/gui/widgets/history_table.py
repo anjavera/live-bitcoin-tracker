@@ -79,6 +79,7 @@ class HistoryTable(QTableView):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self._model = HistoryModel(self)
+        self._follow = True  # start on the newest row
         self.setModel(self._model)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
@@ -92,10 +93,16 @@ class HistoryTable(QTableView):
     def set_local_time(self, local_time: bool) -> None:
         self._model.set_local_time(local_time)
 
+    def follow_newest(self) -> None:
+        """Jump to the newest row on the next update (used when another time frame is shown)."""
+        self._follow = True
+
     def set_rows(self, rows: list[RowVM]) -> None:
         bar = self.verticalScrollBar()
-        following = bar.value() >= bar.maximum()  # stay on the newest row unless the user scrolled up
+        following = self._follow or bar.value() >= bar.maximum()  # stay on the newest row unless the user scrolled up
         self._model.set_rows(rows)
         if following:
+            self.doItemsLayout()  # the scroll range is only updated by a layout pass: without it the jump falls short
             self.scrollToBottom()
             bar.setValue(bar.maximum())
+            self._follow = False

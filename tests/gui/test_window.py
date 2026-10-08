@@ -253,7 +253,7 @@ def test_clicking_hourly_switches_everything_and_reports_the_choice(make_tabs):
     assert window.heading.text() == "Past 24 hours" and window.tab_buttons["1h"].isChecked()
     assert pump(lambda: window.table.model().rowCount() == 25)  # 24 past hours + the live one
     assert "BTC UP OR DOWN · HOURLY" in labels(window)
-    assert window.legend.band_labels[0].text() == "20" and window.legend.band_labels[8].text() == "2000+"
+    assert window.legend.band_labels[0].text() == "20" and window.legend.band_labels[8].text() == "2k+"
     assert pump(lambda: not window.chart.empty) and window.chart.seconds == 3600 and window.chart.label_every == 600
 
 

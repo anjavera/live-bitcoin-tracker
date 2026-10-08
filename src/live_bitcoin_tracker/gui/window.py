@@ -134,6 +134,7 @@ class MainWindow(QMainWindow):
         self.tab_buttons[timeframe.key].setChecked(True)
         self.heading.setText(timeframe.heading)
         self.legend.set_timeframe(timeframe)
+        self.table.follow_newest()
         if self._on_timeframe is not None:
             self._on_timeframe(timeframe)
         self.refresh_view()

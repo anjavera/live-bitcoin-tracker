@@ -177,7 +177,35 @@ def test_legend_lists_nine_bands_each_sign(qapp):
     assert swatches["blue"][0] == QColor(colors.net_color(5, "dark"))
     assert swatches["orange"][-1] == QColor(colors.net_color(-1500, "dark"))
     shown = " ".join(label.text() for label in legend.findChildren(QLabel))
-    assert "1000+" in shown and "UP" in shown and "DOWN" in shown
+    assert "1k+" in shown and "UP" in shown and "DOWN" in shown
+
+
+def test_legend_fits_the_smallest_window_for_every_frame(qapp):
+    from live_bitcoin_tracker.timeframes import DAILY, HOURLY
+
+    legend = LegendBar()
+    for tf in (HOURLY, DAILY):
+        legend.set_timeframe(tf)
+        assert legend.sizeHint().width() <= 720  # the window is at least 760 wide with 20 px margins
+    assert [label.text() for label in legend.band_labels][-1] == "10k+"
+    legend.set_timeframe(HOURLY)
+    assert [label.text() for label in legend.band_labels][:3] == ["20", "50", "100"]
+
+
+def test_table_starts_on_and_follows_the_newest_row_even_when_the_frame_changes(qapp):
+    table = HistoryTable()
+    table.resize(600, 300)
+    table.show()
+    data = rows()
+    table.set_rows(data)
+    bar = table.verticalScrollBar()
+    assert bar.maximum() > 0 and bar.value() == bar.maximum()
+    bar.setValue(0)  # the user scrolls to the top: updates leave them there
+    table.set_rows(rows(84099.0))
+    assert bar.value() == 0
+    table.follow_newest()  # another time frame was chosen
+    table.set_rows(data[:40])
+    assert bar.value() == bar.maximum()
 
 
 def test_statusbar_text(qapp):
