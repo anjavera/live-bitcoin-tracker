@@ -181,13 +181,29 @@ def test_legend_lists_nine_bands_each_sign(qapp):
 
 
 def test_legend_fits_the_smallest_window_for_every_frame(qapp):
+    from PySide6.QtGui import QFontDatabase
+
+    from live_bitcoin_tracker.gui import theme
     from live_bitcoin_tracker.timeframes import DAILY, HOURLY
 
-    legend = LegendBar()
+    if not QFontDatabase.families():
+        pytest.skip("this Qt platform has no fonts (Qt's offscreen mode on Windows), so text widths mean nothing")
+    families = QFontDatabase.families()
+    headline, body = theme.pick_fonts(families)
+    previous = qapp.styleSheet()
+    qapp.setStyleSheet(theme.stylesheet(headline, body))  # measure with the app's real styling, as in the window
+    try:
+        _check_legend_widths(LegendBar(), HOURLY, DAILY)
+    finally:
+        qapp.setStyleSheet(previous)  # do not leak the styling into other tests
+
+
+def _check_legend_widths(legend, HOURLY, DAILY):
     for tf in (HOURLY, DAILY):
         legend.set_timeframe(tf)
-        assert legend.sizeHint().width() <= 720  # the window is at least 760 wide with 20 px margins
+        assert legend.sizeHint().width() <= 700  # the window is at least 760 wide with 20 px margins each side
     assert [label.text() for label in legend.band_labels][-1] == "10k+"
+    assert "blue" in legend.band_labels[0].toolTip() and "orange" in legend.band_labels[0].toolTip()
     legend.set_timeframe(HOURLY)
     assert [label.text() for label in legend.band_labels][:3] == ["20", "50", "100"]
 

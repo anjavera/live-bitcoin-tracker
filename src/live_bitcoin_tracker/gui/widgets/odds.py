@@ -54,7 +54,7 @@ class OddsCard(QFrame):
                 grid.addWidget(w, row, col)
         grid.setColumnStretch(0, 1)
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 14, 20, 14)
+        layout.setContentsMargins(20, 8, 20, 8)
         layout.addLayout(grid)
         layout.addWidget(self.bar)
         layout.addWidget(self.spread_label)

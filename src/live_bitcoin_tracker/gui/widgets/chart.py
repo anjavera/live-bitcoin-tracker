@@ -44,7 +44,7 @@ class PriceChart(QWidget):
         self.local_time = False
         self.seconds, self.label_every = WINDOW_SECONDS, LABEL_EVERY
         self.y_bounds: tuple[float, float] = (0.0, 1.0)
-        self.setMinimumHeight(200)
+        self.setMinimumHeight(130)
 
     @property
     def empty(self) -> bool:

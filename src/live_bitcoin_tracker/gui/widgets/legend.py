@@ -35,21 +35,23 @@ class LegendBar(QFrame):
         layout.addWidget(self._chip("UP", theme.UP))
         layout.addWidget(self._chip("DOWN", theme.DOWN))
         layout.addSpacing(10)
-        layout.addWidget(self._tag("Change $"))
+        layout.addWidget(self._tag("Change"))
         for i, band in enumerate(LEGEND_BANDS):
             blue, orange = colors.net_color(_mid(i), "dark"), colors.net_color(-_mid(i), "dark")
             self.swatches["blue"].append(QColor(blue))
             self.swatches["orange"].append(QColor(orange))
             chip = self._band_chip(_short(band), blue, orange)
+            chip.setToolTip("Change in dollars over the window: blue = the price rose, orange = it fell. Darker = a bigger move.")
             self.band_labels.append(chip)
             layout.addWidget(chip)
-        layout.addWidget(self._tag("blue = up, orange = down"))
         layout.addStretch(1)
 
     def set_timeframe(self, timeframe: Timeframe) -> None:
         """Relabel the change bands in dollars for this frame (the colours stay: they are shades, not amounts)."""
         for chip, label in zip(self.band_labels, legend_bands(timeframe)):
             chip.setText(_short(label))
+            chip.setToolTip(f"Change in dollars over the window (bands for the {timeframe.label} tab): blue = the price rose, "
+                            "orange = it fell. Darker = a bigger move.")
 
     @staticmethod
     def _tag(text: str) -> QLabel:

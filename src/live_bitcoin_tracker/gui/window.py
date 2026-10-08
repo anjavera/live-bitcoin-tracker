@@ -20,7 +20,8 @@ from live_bitcoin_tracker.gui.widgets.strip import StripWidget
 from live_bitcoin_tracker.timeframes import TIMEFRAMES, Timeframe
 
 TITLE = "Live Bitcoin Tracker"
-MIN_WIDTH, MIN_HEIGHT = 760, 640
+MIN_WIDTH, MIN_HEIGHT = 760, 790
+TABLE_MIN_HEIGHT = 150  # a short screen squeezes the chart, never the table down to nothing
 
 
 def is_wayland() -> bool:
@@ -39,6 +40,7 @@ class MainWindow(QMainWindow):
 
         self.header, self.odds, self.chart = HeaderCard(), OddsCard(), PriceChart()
         self.table, self.strip = HistoryTable(), StripWidget()
+        self.table.setMinimumHeight(TABLE_MIN_HEIGHT)
         self.legend, self.status = LegendBar(), StatusBar()
         chart_card = QFrame()
         chart_card.setObjectName("card")
@@ -79,7 +81,7 @@ class MainWindow(QMainWindow):
         page.setObjectName("page")
         layout = QVBoxLayout(page)
         layout.setContentsMargins(20, 16, 20, 12)
-        layout.setSpacing(12)
+        layout.setSpacing(8)
         layout.addLayout(tabs)
         layout.addWidget(self.header)
         layout.addWidget(chart_card, 2)

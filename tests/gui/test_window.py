@@ -286,3 +286,24 @@ def test_the_strip_shows_one_cell_per_past_window_of_the_active_frame(make_tabs)
     assert pump(lambda: len(window.strip.cells) == 24)
     window.tab_buttons["1d"].click()
     assert pump(lambda: len(window.strip.cells) == 30)
+
+
+def test_the_smallest_window_is_big_enough_for_its_contents(make_tabs, qapp):
+    from PySide6.QtGui import QFontDatabase
+
+    from live_bitcoin_tracker.gui import theme
+
+    if not QFontDatabase.families():
+        pytest.skip("this Qt platform has no fonts (Qt's offscreen mode on Windows), so sizes mean nothing")
+    previous = qapp.styleSheet()
+    qapp.setStyleSheet(theme.stylesheet(*theme.pick_fonts(QFontDatabase.families())))  # the app's real styling
+    try:
+        window, _, _ = make_tabs()
+        assert window.table.minimumHeight() >= 100  # the table can never collapse
+        for key in ("15m", "1h", "1d"):  # the busiest tab has the most status lines
+            window.tab_buttons[key].click()
+            assert pump(lambda: window.table.model().rowCount() > 1)
+            hint = window.minimumSizeHint()
+            assert window.minimumHeight() >= hint.height() and window.minimumWidth() >= hint.width(), key  # nothing gets squeezed
+    finally:
+        qapp.setStyleSheet(previous)  # do not leak the styling into other tests

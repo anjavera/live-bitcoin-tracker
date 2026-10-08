@@ -43,7 +43,7 @@ class HeaderCard(QFrame):
         right.addWidget(self.coin, 0, Qt.AlignmentFlag.AlignHCenter)
         right.addWidget(self.countdown_label, 0, Qt.AlignmentFlag.AlignHCenter)
         outer = QHBoxLayout(self)
-        outer.setContentsMargins(20, 16, 20, 16)
+        outer.setContentsMargins(20, 12, 20, 12)
         outer.addLayout(left, 1)
         outer.addLayout(right)
 
