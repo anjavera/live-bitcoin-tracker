@@ -169,6 +169,12 @@ market and time range being looked up. If you choose to add your own Polymarket 
 Polymarket and are never sent anywhere else. The app keeps a small cache of settled market results and its window settings on your
 own computer. It places no orders.
 
+## Contributing and support
+
+Questions and ideas: [Discussions](../../discussions). Bugs: [open an issue](../../issues/new/choose) (macOS reports are especially welcome, since the
+Mac build has not been looked at on a real Mac yet). Want to help: see [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
+Security problems: report them privately, see [SECURITY.md](SECURITY.md). The project is read-only on purpose and will not add trading features.
+
 ## License
 
 [MIT](LICENSE). This project is unofficial and comes with no warranty; see the notice at the top.

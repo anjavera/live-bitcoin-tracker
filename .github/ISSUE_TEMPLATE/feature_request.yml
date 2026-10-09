@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest an improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project is **read-only on purpose**: requests to place orders, trade, or give signals will be declined. Ideas for viewing, accuracy, platforms and polish are welcome.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to see?
+    validations: { required: true }
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would it help?

@@ -1,0 +1,46 @@
+name: Bug report
+description: Something looks wrong or does not work
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please do not include API keys or personal information. For a **security** problem use the private report link in SECURITY.md instead.
+  - type: dropdown
+    id: system
+    attributes:
+      label: Your system
+      options: ["Windows 11", "Windows 10", "macOS (Apple Silicon)", "macOS (Intel)", "Linux (Wayland)", "Linux (X11)", "Other"]
+    validations: { required: true }
+  - type: dropdown
+    id: how
+    attributes:
+      label: How did you install it?
+      options: ["uv tool install", "Downloaded the app from the Releases page", "Linux installer (install-gui.sh)", "From source", "Terminal widget"]
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Run `bitcoin-tracker --version`
+      placeholder: "bitcoin-tracker 0.1.0"
+    validations: { required: true }
+  - type: dropdown
+    id: tab
+    attributes:
+      label: Which tab?
+      options: ["15 min", "Hourly", "Daily", "Not tab related"]
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+  - type: textarea
+    id: shot
+    attributes:
+      label: Screenshot or error text
+      description: Drag a picture in here, or paste any message the app showed.
