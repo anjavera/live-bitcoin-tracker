@@ -5,11 +5,12 @@ places, changes or cancels orders.
 
 ## What it shows
 
-Polymarket US's "BTC Up or Down" markets in three time frames, with the same design for each: the live window with
+Polymarket US's "BTC Up or Down" markets in four time frames, with the same design for each: the live window with
 Up/Down odds, a live BTC price, the price to beat, a countdown and a price chart, over a history table.
 
 | Frame | History | Window | Slug |
 |---|---|---|---|
+| 5 min | 12 hours (144) | every five minutes (UTC clock) | `btc-updown-5m-2026-10-08-0505z` |
 | 15 min | 24 hours (96) | every quarter hour (UTC clock) | `btc-updown-15m-2026-10-08-0500z` |
 | Hourly | 24 hours (24) | every hour (UTC clock) | `btc-updown-1h-2026-10-08-0500z` |
 | Daily | 30 days (30) | 5:00 PM ET to 5:00 PM ET | `btc-updown-1d-2026-10-07-2100z` |
@@ -43,7 +44,7 @@ marked provisional.
 
 - **No API keys are needed** for the widget or `pm btc15`. Keys are optional: with them the widget uses the
   authenticated WebSocket feed (`feed: live (keyed)`); `--keyless` forces the public path.
-- **History:** settled windows addressed by slug (`btc-updown-{15m,1h,1d}-YYYY-MM-DD-HHMMz`), fetched with one
+- **History:** settled windows addressed by slug (`btc-updown-{5m,15m,1h,1d}-YYYY-MM-DD-HHMMz`), fetched with one
   `events.list` request per 100 slugs and cached locally, one cache file per frame; only new windows are fetched afterwards.
   The window loads history for the tab you are on first, then the other two, one load at a time to stay clear of rate limits.
   Volume needs one extra request per window, so it is opt-in (`--volume`).

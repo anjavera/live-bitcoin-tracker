@@ -1,5 +1,6 @@
-"""Window maths for Polymarket US's BTC Up/Down markets, which come in three time frames.
+"""Window maths for Polymarket US's BTC Up/Down markets, which come in four time frames.
 
+- 5 minutes: every five minutes (UTC clock).
 - 15 minutes: every quarter hour (UTC clock).
 - 1 hour: every hour on the hour (UTC clock).
 - 1 day: from 5 PM ET to the next 5 PM ET, so a day is 24 hours except on the two daylight-saving changes (25 and 23).
@@ -26,7 +27,7 @@ def _daily_start(day: date) -> datetime:
 
 @dataclass(frozen=True)
 class Timeframe:
-    key: str  # "15m", "1h", "1d": also the part of the slug
+    key: str  # "5m", "15m", "1h", "1d": also the part of the slug
     label: str  # tab text
     heading: str  # over the history table
     count: int  # past windows shown
@@ -39,6 +40,8 @@ class Timeframe:
     def floor(self, now: datetime) -> datetime:
         """Start of the window containing `now`."""
         now = now.astimezone(UTC)
+        if self.key == "5m":
+            return now.replace(minute=now.minute // 5 * 5, second=0, microsecond=0)
         if self.key == "15m":
             return now.replace(minute=now.minute // 15 * 15, second=0, microsecond=0)
         if self.key == "1h":
@@ -49,6 +52,8 @@ class Timeframe:
 
     def next(self, start: datetime) -> datetime:
         """Start of the window after the one starting at `start` (which is also its end)."""
+        if self.key == "5m":
+            return start + timedelta(minutes=5)
         if self.key == "15m":
             return start + timedelta(minutes=15)
         if self.key == "1h":
@@ -56,6 +61,8 @@ class Timeframe:
         return _daily_start(start.astimezone(ET).date() + timedelta(days=1))
 
     def prev(self, start: datetime) -> datetime:
+        if self.key == "5m":
+            return start - timedelta(minutes=5)
         if self.key == "15m":
             return start - timedelta(minutes=15)
         if self.key == "1h":
@@ -111,10 +118,11 @@ class Timeframe:
         return f"{t:%m-%d %H:%M}-{e:%H:%M}"
 
 
+FIVE_MIN = Timeframe("5m", "5 min", "Past 12 h", 144, 0.5, "ASSET_PRICE_BUCKET_1S", 60, False)
 FIFTEEN_MIN = Timeframe("15m", "15 min", "Past 24 h", 96, 1, "ASSET_PRICE_BUCKET_1S", 120, False)
 HOURLY = Timeframe("1h", "Hourly", "Past 24 hours", 24, 2, "ASSET_PRICE_BUCKET_5S", 600, False)
 DAILY = Timeframe("1d", "Daily", "Past 30 days", 30, 10, "ASSET_PRICE_BUCKET_1M", 4 * 3600, True)
-TIMEFRAMES = (FIFTEEN_MIN, HOURLY, DAILY)
+TIMEFRAMES = (FIVE_MIN, FIFTEEN_MIN, HOURLY, DAILY)
 
 
 def by_key(key: str) -> Timeframe:

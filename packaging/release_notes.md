@@ -1,6 +1,6 @@
-## Live Bitcoin Tracker v0.1.0: first public release
+## Live Bitcoin Tracker v0.2.0: 5-minute tab
 
-An unofficial, read-only tracker for Polymarket US's **Bitcoin Up or Down** markets: **15 minute**, **hourly** (last 24 hours) and **daily** (last 30 days, closing 5 PM ET) in one window, with the live price, the odds, a countdown and a colour-coded history table. It places no orders and is not financial advice.
+An unofficial, read-only tracker for Polymarket US's **Bitcoin Up or Down** markets: **5 minute** (last 12 hours, new in this release), **15 minute**, **hourly** (last 24 hours) and **daily** (last 30 days, closing 5 PM ET) in one window, with the live price, the odds, a countdown and a colour-coded history table. It places no orders and is not financial advice.
 
 ### What has been tested
 - **Linux: tested.**

@@ -23,7 +23,7 @@ body:
     attributes:
       label: Version
       description: Run `bitcoin-tracker --version`
-      placeholder: "bitcoin-tracker 0.1.0"
+      placeholder: "bitcoin-tracker 0.2.0"
     validations: { required: true }
   - type: dropdown
     id: tab

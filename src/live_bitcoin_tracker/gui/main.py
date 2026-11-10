@@ -50,11 +50,11 @@ def display_problem(platform: str, env, find_library=None, load=None) -> str | N
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="bitcoin-tracker", description="Live Bitcoin Tracker: BTC Up/Down 15-minute, hourly and daily markets")
+    parser = argparse.ArgumentParser(prog="bitcoin-tracker", description="Live Bitcoin Tracker: BTC Up/Down 5-minute, 15-minute, hourly and daily markets")
     parser.add_argument("--version", action="version", version=f"bitcoin-tracker {_version()}")
     parser.add_argument("--keyless", action="store_true", help="ignore any API keys and use public data only")
     parser.add_argument("--snapshot", metavar="PNG", help="save one picture of the window to PNG and exit")
-    parser.add_argument("--timeframe", choices=["15m", "1h", "1d"], help="start on this time frame (default: the one used last time)")
+    parser.add_argument("--timeframe", choices=["5m", "15m", "1h", "1d"], help="start on this time frame (default: the one used last time)")
     return parser
 
 

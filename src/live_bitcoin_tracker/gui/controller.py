@@ -45,7 +45,7 @@ class _FeedRun:
 
 
 class Controller(QObject):
-    """State for all three time frames (15 min, hourly, daily); `state`, the chart and the live feed follow the active one."""
+    """State for all four time frames (5 min, 15 min, hourly, daily); `state`, the chart and the live feed follow the active one."""
 
     updated = Signal()  # emitted on the UI thread after any change to `state` or the chart
     _call = Signal(object)  # worker -> UI thread: a zero-argument callable to run there

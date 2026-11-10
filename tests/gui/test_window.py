@@ -208,7 +208,7 @@ def test_snapshot_unwritable_path_returns_error(qapp, tmp_path, monkeypatch, cap
 
 
 # ---- time-frame tabs ----------------------------------------------------------------------------------
-from live_bitcoin_tracker.timeframes import DAILY, FIFTEEN_MIN, HOURLY  # noqa: E402
+from live_bitcoin_tracker.timeframes import DAILY, FIVE_MIN, FIFTEEN_MIN, HOURLY  # noqa: E402
 
 
 def frame_sources(clock):
@@ -241,7 +241,7 @@ def make_tabs(qapp):
 
 def test_there_is_a_tab_for_each_time_frame_and_15_minutes_is_selected(make_tabs):
     window, controller, _ = make_tabs()
-    assert [b.text() for b in window.tab_buttons.values()] == ["15 min", "Hourly", "Daily"]
+    assert [b.text() for b in window.tab_buttons.values()] == ["5 min", "15 min", "Hourly", "Daily"]
     assert window.tab_buttons["15m"].isChecked() and window.heading.text() == "Past 24 h"
     assert controller.timeframe is FIFTEEN_MIN
 
@@ -268,16 +268,18 @@ def test_daily_tab_shows_thirty_days_a_long_countdown_and_the_day_long_chart(mak
     assert window.legend.band_labels[0].text() == "100"
 
 
-def test_number_keys_are_wired_to_the_three_frames(make_tabs):
+def test_number_keys_are_wired_to_the_four_frames(make_tabs):
     window, controller, _ = make_tabs()
-    by_key = {a.shortcut().toString(): a for a in window.actions() if a.shortcut().toString() in ("1", "2", "3")}
-    assert set(by_key) == {"1", "2", "3"}
-    by_key["3"].trigger()
+    by_key = {a.shortcut().toString(): a for a in window.actions() if a.shortcut().toString() in ("1", "2", "3", "4")}
+    assert set(by_key) == {"1", "2", "3", "4"}
+    by_key["4"].trigger()
     assert controller.timeframe is DAILY
-    by_key["2"].trigger()
+    by_key["3"].trigger()
     assert controller.timeframe is HOURLY
-    by_key["1"].trigger()
+    by_key["2"].trigger()
     assert controller.timeframe is FIFTEEN_MIN
+    by_key["1"].trigger()
+    assert controller.timeframe is FIVE_MIN
 
 
 def test_the_strip_shows_one_cell_per_past_window_of_the_active_frame(make_tabs):

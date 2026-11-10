@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from live_bitcoin_tracker.timeframes import DAILY, FIFTEEN_MIN, HOURLY, TIMEFRAMES, by_key
+from live_bitcoin_tracker.timeframes import DAILY, FIFTEEN_MIN, FIVE_MIN, HOURLY, TIMEFRAMES, by_key
 
 UTC = timezone.utc
 
@@ -14,9 +14,18 @@ def utc(*args):
 
 
 def test_registry_has_the_three_frames_in_display_order():
-    assert [t.key for t in TIMEFRAMES] == ["15m", "1h", "1d"]
+    assert [t.key for t in TIMEFRAMES] == ["5m", "15m", "1h", "1d"]
     assert by_key("1h") is HOURLY and by_key("nope") is FIFTEEN_MIN  # unknown keys fall back to the default
-    assert (FIFTEEN_MIN.count, HOURLY.count, DAILY.count) == (96, 24, 30)
+    assert (FIVE_MIN.count, FIFTEEN_MIN.count, HOURLY.count, DAILY.count) == (144, 96, 24, 30)
+
+
+def test_five_minute_floor_and_slugs():
+    start = FIVE_MIN.floor(utc(2026, 11, 10, 16, 7, 31))
+    assert start == utc(2026, 11, 10, 16, 5) and FIVE_MIN.end(start) == utc(2026, 11, 10, 16, 10)
+    assert FIVE_MIN.event_slug(start) == "btc-updown-5m-2026-11-10-1605z"
+    assert FIVE_MIN.market_slug(start) == "cpc-btc-updown-5m-2026-11-10-1605z"
+    assert FIVE_MIN.prev(start) == utc(2026, 11, 10, 16, 0) and FIVE_MIN.past_starts(start)[-1] == FIVE_MIN.prev(start)
+    assert len(FIVE_MIN.past_starts(start)) == 144 and FIVE_MIN.event_slugs(start) == [FIVE_MIN.event_slug(start)]
 
 
 def test_fifteen_minute_floor_and_slugs():

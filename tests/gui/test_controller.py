@@ -332,7 +332,7 @@ def frame_sources(loads=None, feeds=None, charts=None, **over):
     return make_sources(load_frame_history=load, frame_feed_factory=feed, fetch_frame_index_history=chart, **over)
 
 
-def test_all_three_frames_load_history_the_active_one_first_and_one_at_a_time(make):
+def test_all_four_frames_load_history_the_active_one_first_and_one_at_a_time(make):
     order, in_flight, peak = [], [0], [0]
     lock = threading.Lock()
 
@@ -360,9 +360,9 @@ def test_all_three_frames_load_history_the_active_one_first_and_one_at_a_time(ma
         c.tick()
         if all(s.windows for s in c.states.values()):
             break
-    assert [len(c.states[k].windows) for k in ("15m", "1h", "1d")] == [97, 25, 31]
+    assert [len(c.states[k].windows) for k in ("5m", "15m", "1h", "1d")] == [145, 97, 25, 31]
     assert order[0] == "1h"  # the frame being shown is loaded before the hidden ones
-    assert sorted(order[:3]) == ["15m", "1d", "1h"] and peak[0] == 1
+    assert sorted(order[:4]) == ["15m", "1d", "1h", "5m"] and peak[0] == 1
 
 
 def test_switching_frames_moves_state_chart_and_feed(make):

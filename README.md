@@ -2,16 +2,17 @@
 
 # Live Bitcoin Tracker
 
-A live tracker for Polymarket US's **"Bitcoin Up or Down"** markets, in three time frames in one window:
+A live tracker for Polymarket US's **"Bitcoin Up or Down"** markets, in four time frames in one window:
 
 | Tab | Shows | History | Closes |
 |---|---|---|---|
+| **5 min** | the live 5-minute window: price chart, Up/Down odds, countdown | last 12 hours (144 windows) | every five minutes |
 | **15 min** | the live 15-minute window: price chart, Up/Down odds, countdown | last 24 hours (96 windows) | every quarter hour |
 | **Hourly** | the same for the live hour | last 24 hours (24 windows) | every hour on the hour |
 | **Daily** | the same for the live day | last 30 days (30 windows) | 5:00 PM ET, whenever Polymarket's daily market closes |
 
 Each tab has the same design: the live price against the price to beat, a countdown, the odds, and a colour-coded
-history table (result green/red, change in dollars blue/orange). Switch tabs with the buttons or the **1**, **2**, **3** keys.
+history table (result green/red, change in dollars blue/orange). Switch tabs with the buttons or the **1**, **2**, **3**, **4** keys.
 
 ![15 minute tab](docs/screenshots/15m.png)
 ![Hourly tab](docs/screenshots/1h.png)
@@ -42,7 +43,7 @@ uv tool install "live-bitcoin-tracker[gui] @ git+https://github.com/anjavera/liv
 bitcoin-tracker
 ```
 
-Options: `--timeframe 15m|1h|1d` (otherwise it opens on the tab you used last), `--keyless` (ignore any API keys),
+Options: `--timeframe 5m|15m|1h|1d` (otherwise it opens on the tab you used last), `--keyless` (ignore any API keys),
 `--snapshot out.png` (save a picture and exit). To update later: run the `uv tool install` line again with `--force`.
 
 ### Or download the app (no Python needed)
@@ -73,9 +74,9 @@ There is also a terminal widget for the 15-minute market: `bitcoin-tracker-tui-<
 (Linux has `install.sh`), or `uv tool install git+https://github.com/anjavera/live-bitcoin-tracker` then
 `bitcoin-tracker-tui`. Press **q** to quit; the window needs to be at least 80 columns by 16 rows.
 
-## How the three time frames settle
+## How the four time frames settle
 
-All three are settled by Polymarket on **CF Benchmarks' Bitcoin Real-Time Index (BRTI)**. At each boundary the official
+All four are settled by Polymarket on **CF Benchmarks' Bitcoin Real-Time Index (BRTI)**. At each boundary the official
 value is the simple average of the 60 BRTI prices in the last minute before it, rounded to 2 decimals; the window is **Up** if the
 end value is greater than or equal to the start value. This tracker shows Polymarket's own published open and close,
 so the history is exact. The live gap and the "UP?/DOWN?" mark are provisional because they use the latest price, not a
@@ -83,7 +84,7 @@ so the history is exact. The live gap and the "UP?/DOWN?" mark are provisional b
 hours long on the two days the clocks change.
 
 Polymarket US started its daily markets on 4 October 2026, so the first rows of the 30-day table read **none** until
-there are 30 days of history; the hourly and 15-minute markets go back further.
+there are 30 days of history; the hourly, 15-minute and 5-minute markets go back further.
 
 ## No API keys needed
 
@@ -123,7 +124,7 @@ exposed, revoke it at <https://polymarket.us/developer>. This project only reads
 
 ```
 uv sync --extra gui
-uv run bitcoin-tracker                      # desktop window: 15 min, hourly and daily tabs
+uv run bitcoin-tracker                      # desktop window: 5 min, 15 min, hourly and daily tabs
 uv run bitcoin-tracker --timeframe 1d       # start on the daily tab
 uv run bitcoin-tracker-tui                  # live terminal widget (15 minutes; add --keyless to ignore any API keys)
 uv run bitcoin-tracker-tui --snapshot       # print one plain-text frame and exit

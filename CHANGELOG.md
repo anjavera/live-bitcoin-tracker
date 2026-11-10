@@ -3,6 +3,12 @@
 All notable changes to this project. Format follows [Keep a Changelog](https://keepachangelog.com/);
 the project uses [semantic versioning](https://semver.org/).
 
+## [0.2.0] - 2026-11-10
+
+### Added
+- **5-minute tab** for Polymarket's new 5-minute BTC Up/Down markets, with the same design as the others and the last
+  12 hours (144 windows) of history. Tab keys are now 1 to 4.
+
 ## [0.1.0] - 2026-10-08 (first public release)
 
 ### Added

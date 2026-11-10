@@ -1,6 +1,6 @@
 [project]
 name = "live-bitcoin-tracker"
-version = "0.1.0"
+version = "0.2.0"
 description = "Unofficial live widget for Polymarket US BTC Up or Down 15-minute markets"
 readme = "README.md"
 license = "MIT"
